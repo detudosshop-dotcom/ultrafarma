@@ -12,6 +12,19 @@ document.addEventListener('DOMContentLoaded', function() {
   let couponDiscount = 0;
   let cachedAddressData = null;
 
+  // Captura UTMs da URL ou do localStorage (setados pelo script UTMify)
+  function getUtms() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'src', 'sck'];
+    const utms = {};
+    utmKeys.forEach(k => {
+      // Prioridade: localStorage (UTMify persiste entre páginas) > URL atual
+      const stored = localStorage.getItem('utmify_' + k) || localStorage.getItem(k);
+      utms[k] = stored || urlParams.get(k) || null;
+    });
+    return utms;
+  }
+
   function loadCart() {
     let cart = { items: [] };
     try {
@@ -745,9 +758,9 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: amountCents,
+          amount:      amountCents,
           description: 'Tirzepatida T.G. - Ultrafarma',
-          reference: reference,
+          reference,
           customer: {
             name:     customerName,
             email:    customerEmail,
@@ -761,7 +774,8 @@ document.addEventListener('DOMContentLoaded', function() {
             city:         cityEl   ? cityEl.value.trim()   : '',
             state:        stateEl  ? stateEl.value.trim()  : '',
             zipcode:      customerCep
-          }
+          },
+          utms: getUtms()
         })
       });
 
@@ -771,19 +785,21 @@ document.addEventListener('DOMContentLoaded', function() {
       if (pixContent) pixContent.style.display = 'block';
 
       if (data.success && data.qr_code_text) {
-        // Insere o código copia-e-cola real
         if (pixCodeInput) pixCodeInput.value = data.qr_code_text;
 
-        // Substitui SVG placeholder pela imagem real do QR Code
         if (data.qr_code_image && pixQrWrapper) {
           pixQrWrapper.innerHTML = '<img src="' + data.qr_code_image + '" alt="QR Code PIX" style="width:180px;height:180px;border-radius:8px;display:block;margin:0 auto;">';
         }
 
-        // Guarda o ID para polling de confirmação
-        try { localStorage.setItem('monja_pix_txid', data.transaction_id); } catch(e) {}
-        try { localStorage.setItem('monja_pix_ref', reference); } catch(e) {}
+        // Salva dados do pedido para o polling usar ao confirmar pagamento
+        try { localStorage.setItem('monja_pix_txid',       data.transaction_id); } catch(e) {}
+        try { localStorage.setItem('monja_pix_ref',        reference); } catch(e) {}
+        try { localStorage.setItem('monja_pix_created_at', data.created_at || new Date().toISOString()); } catch(e) {}
+        try { localStorage.setItem('monja_pix_amount',     amountCents); } catch(e) {}
+        try { localStorage.setItem('monja_pix_customer',   JSON.stringify({ name: customerName, email: customerEmail, document: customerCpf })); } catch(e) {}
+        try { localStorage.setItem('monja_pix_utms',       JSON.stringify(getUtms())); } catch(e) {}
 
-        // Polling automático a cada 5 s por até 10 min
+        // Polling automático a cada 5s por até 10 min
         startPixPolling(data.transaction_id, reference);
 
       } else {
@@ -919,19 +935,39 @@ document.addEventListener('DOMContentLoaded', function() {
     let attempts = 0;
     const maxAttempts = 120; // 10 minutos (120 x 5s)
 
+    // Recupera dados salvos para o UTMify paid event
+    let customer = {};
+    let utms = {};
+    try { customer = JSON.parse(localStorage.getItem('monja_pix_customer') || '{}'); } catch(e) {}
+    try { utms = JSON.parse(localStorage.getItem('monja_pix_utms') || '{}'); } catch(e) {}
+    const amount     = localStorage.getItem('monja_pix_amount')     || 0;
+    const created_at = localStorage.getItem('monja_pix_created_at') || '';
+
     const interval = setInterval(async () => {
       attempts++;
-      if (attempts > maxAttempts) {
-        clearInterval(interval);
-        return;
-      }
+      if (attempts > maxAttempts) { clearInterval(interval); return; }
       try {
-        const resp = await fetch('/api/pix-status?id=' + encodeURIComponent(transactionId));
+        // Monta query com dados do pedido para o pix-status.js notificar UTMify quando pago
+        const params = new URLSearchParams({
+          id:           transactionId,
+          order_id:     reference,
+          amount:       amount,
+          created_at:   created_at,
+          customer_name: customer.name    || '',
+          customer_email: customer.email  || '',
+          customer_doc: customer.document || '',
+          utms: encodeURIComponent(JSON.stringify(utms))
+        });
+
+        const resp = await fetch('/api/pix-status?' + params.toString());
         const data = await resp.json();
+
         if (data.status === 'approved') {
           clearInterval(interval);
-          localStorage.removeItem('monja_ecommerce_cart');
-          localStorage.removeItem('monja_pix_txid');
+          // Limpa dados do localStorage
+          ['monja_ecommerce_cart','monja_pix_txid','monja_pix_ref',
+           'monja_pix_created_at','monja_pix_amount','monja_pix_customer','monja_pix_utms']
+            .forEach(k => localStorage.removeItem(k));
           if (orderNumberEl) orderNumberEl.textContent = '#' + reference;
           goToStep(4);
           if (modalSuccess) modalSuccess.style.display = 'flex';
