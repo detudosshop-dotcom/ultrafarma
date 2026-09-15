@@ -1,8 +1,9 @@
 {
   "name": "ultrafarma-tirzepatida",
   "version": "1.0.0",
-  "description": "Página oficial Tirzepatida T.G. Ultrafarma com Checkout Exclusivo PIX",
+  "description": "Clone Ultrafarma Tirzepatida T.G. com Checkout Exclusivo PIX",
   "scripts": {
+    "build": "echo 'Static site ready'",
     "dev": "node local-server.js",
     "start": "node local-server.js"
   }
