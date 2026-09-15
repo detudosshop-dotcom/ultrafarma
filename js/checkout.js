@@ -831,6 +831,7 @@ document.addEventListener('DOMContentLoaded', function() {
         city:         cityEl   ? cityEl.value.trim()   : '',
         state:        stateEl  ? stateEl.value.trim()  : '',
         zipcode:      customerCep
+      };
 
       // Calcula valor total em centavos
       const totals = calculateTotals();
