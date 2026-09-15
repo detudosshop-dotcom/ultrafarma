@@ -230,6 +230,30 @@
               </label>
             </div>
 
+            <!-- ORDERBUMP: Agulhas BD Ultra-Fine — aparece ANTES do pagamento -->
+            <div id="orderbump-box" style="border:2px dashed #f97316;border-radius:10px;background:#fff7ed;padding:14px;margin-bottom:14px;">
+              <div style="font-size:11px;font-weight:800;color:#ea580c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
+                🎯 Oferta Especial — Apenas Para Este Pedido!
+              </div>
+              <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+                <input type="checkbox" id="orderbump-agulhas" style="width:20px;height:20px;accent-color:#ea580c;flex-shrink:0;">
+                <div style="display:flex;align-items:center;gap:10px;flex:1;">
+                  <img src="/images/agulhas-bd.jpg" alt="Agulhas BD Ultra-Fine" style="width:52px;height:52px;object-fit:contain;border-radius:6px;border:1px solid #fed7aa;" onerror="this.src='/images/tirzepatida-all.png'">
+                  <div style="flex:1;">
+                    <div style="font-size:12px;font-weight:700;color:#1e293b;line-height:1.3;">
+                      Sim! Quero adicionar <strong>Agulhas BD Ultra-Fine 4mm 32G</strong> (100 unidades) ao meu pedido
+                    </div>
+                    <div style="font-size:11px;color:#64748b;margin-top:2px;">Compatíveis com as canetas Tirzepatida T.G.</div>
+                    <div style="margin-top:4px;">
+                      <span style="text-decoration:line-through;font-size:11px;color:#94a3b8;">R$ 89,90</span>
+                      <span style="font-size:14px;font-weight:800;color:#ea580c;margin-left:6px;">R$ 49,90</span>
+                      <span style="font-size:10px;background:#ea580c;color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:4px;">44% OFF</span>
+                    </div>
+                  </div>
+                </div>
+              </label>
+            </div>
+
             <div class="step-actions-footer">
               <button type="button" class="btn-step-prev" id="btn-back-to-step-1">
                 &larr; Voltar para a Cesta
@@ -298,36 +322,12 @@
               </div>
             </div>
 
-            <!-- ORDERBUMP: Agulhas BD Ultra-Fine -->
-            <div id="orderbump-box" style="border:2px dashed #f97316;border-radius:10px;background:#fff7ed;padding:14px;margin-bottom:14px;">
-              <div style="font-size:11px;font-weight:800;color:#ea580c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
-                🎯 Oferta Especial — Apenas Para Este Pedido!
-              </div>
-              <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
-                <input type="checkbox" id="orderbump-agulhas" style="width:20px;height:20px;accent-color:#ea580c;flex-shrink:0;">
-                <div style="display:flex;align-items:center;gap:10px;flex:1;">
-                  <img src="/images/agulhas-bd.jpg" alt="Agulhas BD Ultra-Fine" style="width:52px;height:52px;object-fit:contain;border-radius:6px;border:1px solid #fed7aa;" onerror="this.src='/images/tirzepatida-all.png'">
-                  <div style="flex:1;">
-                    <div style="font-size:12px;font-weight:700;color:#1e293b;line-height:1.3;">
-                      Sim! Quero adicionar <strong>Agulhas BD Ultra-Fine 4mm 32G</strong> (100 unidades) ao meu pedido
-                    </div>
-                    <div style="font-size:11px;color:#64748b;margin-top:2px;">Compatíveis com as canetas Tirzepatida T.G.</div>
-                    <div style="margin-top:4px;">
-                      <span style="text-decoration:line-through;font-size:11px;color:#94a3b8;">R$ 89,90</span>
-                      <span style="font-size:14px;font-weight:800;color:#ea580c;margin-left:6px;">R$ 49,90</span>
-                      <span style="font-size:10px;background:#ea580c;color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:4px;">44% OFF</span>
-                    </div>
-                  </div>
-                </div>
-              </label>
-            </div>
-
             <div class="step-actions-footer">
               <button type="button" class="btn-step-prev" id="btn-back-to-step-2">
                 &larr; Voltar para Entrega
               </button>
-              <button type="button" class="btn-step-next btn-finalize" id="btn-finalize-order">
-                Finalizar Pedido
+              <button type="button" class="btn-step-next btn-finalize" id="btn-finalize-order" style="background:#009640;">
+                ✅ Já Paguei o PIX
               </button>
             </div>
           </div>
