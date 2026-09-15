@@ -98,9 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (priceDeEl) priceDeEl.innerHTML = 'De <s>' + formatMoney(variant.priceOriginal) + '</s> <span style="background:#ef4444;color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:4px;margin-left:4px;">' + discPct + '% OFF</span>';
     if (priceCashbackEl) priceCashbackEl.innerHTML = '✅ Você economiza: <strong style="color:#009640;">' + formatMoney(savings) + '</strong>';
     if (pricePorEl) pricePorEl.textContent = formatMoney(variant.pricePromo);
-    if (priceInstallmentsEl) {
-      priceInstallmentsEl.innerHTML = 'em até <strong>' + variant.installmentCount + 'x de ' + formatMoney(variant.installmentValue) + '</strong> sem juros';
-    }
     if (pricePixEl) pricePixEl.textContent = formatMoney(variant.pixPrice);
     if (unitPromoNoteEl) {
       unitPromoNoteEl.innerHTML = 'Preço unitário no combo de 2 un: <strong>' + formatMoney(variant.progressivePrice2) + ' cada</strong>';
