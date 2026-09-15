@@ -89,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const priceDeEl = document.getElementById('pdp-price-de');
     const priceCashbackEl = document.getElementById('pdp-price-cashback');
     const pricePorEl = document.getElementById('pdp-price-por');
-    const priceInstallmentsEl = document.getElementById('pdp-price-installments');
     const pricePixEl = document.getElementById('pdp-price-pix');
     const unitPromoNoteEl = document.getElementById('pdp-unit-promo-note');
 
