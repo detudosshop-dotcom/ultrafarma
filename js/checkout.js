@@ -787,24 +787,38 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.success && data.qr_code_text) {
         if (pixCodeInput) pixCodeInput.value = data.qr_code_text;
 
-        // Gera QR Code no frontend com qrcode.js (API retorna só o texto EMV)
+        // Gera e exibe o QR Code no wrapper usando qrcode.js (carregado via CDN)
         if (pixQrWrapper) {
-          if (typeof QRCode !== 'undefined') {
-            QRCode.toDataURL(data.qr_code_text, {
+          function renderQR() {
+            pixQrWrapper.innerHTML = ''; // limpa SVG placeholder
+            const canvas = document.createElement('canvas');
+            canvas.style.cssText = 'display:block;margin:0 auto;border-radius:8px;';
+            pixQrWrapper.appendChild(canvas);
+            QRCode.toCanvas(canvas, data.qr_code_text, {
               errorCorrectionLevel: 'M',
-              width: 260,
+              width: 220,
               margin: 2,
               color: { dark: '#000000', light: '#ffffff' }
-            }, function(err, url) {
-              if (!err && url) {
-                pixQrWrapper.innerHTML = '<img src="' + url + '" alt="QR Code PIX" style="width:220px;height:220px;border-radius:8px;display:block;margin:0 auto;">';
-              } else {
-                pixQrWrapper.innerHTML = '<div style="color:#ef4444;text-align:center;padding:16px;font-size:13px;">⚠️ Erro ao exibir QR.<br>Use o código Copia e Cola abaixo.</div>';
+            }, function(err) {
+              if (err) {
+                pixQrWrapper.innerHTML = '<div style="color:#64748b;text-align:center;padding:12px;font-size:12px;">Use o código Copia e Cola abaixo.</div>';
               }
             });
+          }
+
+          if (typeof QRCode !== 'undefined') {
+            renderQR();
           } else {
-            // Fallback: mostra apenas o texto (QRCode.js não carregou)
-            pixQrWrapper.innerHTML = '<div style="color:#64748b;text-align:center;padding:16px;font-size:12px;">Use o código Copia e Cola abaixo.</div>';
+            // qrcode.js ainda não carregou — aguarda até 3s
+            let waited = 0;
+            const waitLib = setInterval(() => {
+              waited += 100;
+              if (typeof QRCode !== 'undefined') { clearInterval(waitLib); renderQR(); }
+              else if (waited >= 3000) {
+                clearInterval(waitLib);
+                pixQrWrapper.innerHTML = '<div style="color:#64748b;text-align:center;padding:12px;font-size:12px;">Use o código Copia e Cola abaixo.</div>';
+              }
+            }, 100);
           }
         }
 
