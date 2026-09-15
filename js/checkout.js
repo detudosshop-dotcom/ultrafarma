@@ -787,8 +787,25 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.success && data.qr_code_text) {
         if (pixCodeInput) pixCodeInput.value = data.qr_code_text;
 
-        if (data.qr_code_image && pixQrWrapper) {
-          pixQrWrapper.innerHTML = '<img src="' + data.qr_code_image + '" alt="QR Code PIX" style="width:180px;height:180px;border-radius:8px;display:block;margin:0 auto;">';
+        // Gera QR Code no frontend com qrcode.js (API retorna só o texto EMV)
+        if (pixQrWrapper) {
+          if (typeof QRCode !== 'undefined') {
+            QRCode.toDataURL(data.qr_code_text, {
+              errorCorrectionLevel: 'M',
+              width: 260,
+              margin: 2,
+              color: { dark: '#000000', light: '#ffffff' }
+            }, function(err, url) {
+              if (!err && url) {
+                pixQrWrapper.innerHTML = '<img src="' + url + '" alt="QR Code PIX" style="width:220px;height:220px;border-radius:8px;display:block;margin:0 auto;">';
+              } else {
+                pixQrWrapper.innerHTML = '<div style="color:#ef4444;text-align:center;padding:16px;font-size:13px;">⚠️ Erro ao exibir QR.<br>Use o código Copia e Cola abaixo.</div>';
+              }
+            });
+          } else {
+            // Fallback: mostra apenas o texto (QRCode.js não carregou)
+            pixQrWrapper.innerHTML = '<div style="color:#64748b;text-align:center;padding:16px;font-size:12px;">Use o código Copia e Cola abaixo.</div>';
+          }
         }
 
         // Salva dados do pedido para o polling usar ao confirmar pagamento

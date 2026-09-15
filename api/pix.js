@@ -1,9 +1,6 @@
 // api/pix.js — Vercel Serverless Function
-// Proxy seguro para FlevoPay + QR Code gerado localmente
-
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const QRCode  = require('qrcode');
+// Proxy seguro para FlevoPay
+// QR Code é gerado no FRONTEND com qrcode.js (sem dependência de pacote no servidor)
 
 const FLEVOPAY_API = 'https://app.flevopay.com.br/api/v1/transaction';
 const FLEVOPAY_KEY = 'flevopay_sk_4d2f2349cd060b2eb9d2346923037759f1c3b617645417359fc96c8a80ea2429';
@@ -27,24 +24,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Campos obrigatórios: amount, customer, reference' });
     }
 
-    const payload = {
-      amount:      Math.round(amount),
-      description: description || 'Tirzepatida T.G. - Ultrafarma',
-      reference,
-      source:      'api_externa',
-      customer: {
-        name:     customer.name,
-        email:    customer.email,
-        document: customer.document,
-        phone:    customer.phone
-      },
-      address: address || undefined
-    };
-
     const fResponse = await fetch(FLEVOPAY_API, {
       method: 'POST',
       headers: { 'X-API-Key': FLEVOPAY_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        amount:      Math.round(amount),
+        description: description || 'Tirzepatida T.G. - Ultrafarma',
+        reference,
+        source:      'api_externa',
+        customer: {
+          name:     customer.name,
+          email:    customer.email,
+          document: customer.document,
+          phone:    customer.phone
+        },
+        address: address || undefined
+      })
     });
 
     const data = await fResponse.json();
@@ -56,25 +51,11 @@ export default async function handler(req, res) {
       });
     }
 
-    const qrText = data.qr_code || '';
-
-    // Gera QR Code como data:image/png;base64 — sem API externa
-    let qrImageDataUrl = '';
-    if (qrText) {
-      qrImageDataUrl = await QRCode.toDataURL(qrText, {
-        errorCorrectionLevel: 'M',
-        type: 'image/png',
-        width: 300,
-        margin: 2,
-        color: { dark: '#000000', light: '#ffffff' }
-      });
-    }
-
+    // Retorna apenas o texto EMV — o QR Code será renderizado no frontend com qrcode.js
     return res.status(200).json({
       success:        true,
       transaction_id: data.transaction_id,
-      qr_code_text:   qrText,
-      qr_code_image:  qrImageDataUrl,
+      qr_code_text:   data.qr_code || '',   // texto EMV para o frontend renderizar o QR
       amount:         data.amount,
       created_at:     nowUTC(),
       expires_at:     data.expires_at
@@ -82,10 +63,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('PIX handler error:', err);
-    return res.status(500).json({
-      error:   'Erro interno ao gerar PIX',
-      message: err.message,
-      stack:   err.stack
-    });
+    return res.status(500).json({ error: 'Erro interno', message: err.message });
   }
 }
