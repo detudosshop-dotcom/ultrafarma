@@ -1,7 +1,9 @@
 // api/pix.js — Vercel Serverless Function
-// Proxy seguro para FlevoPay + geração de QR Code local (sem API externa)
+// Proxy seguro para FlevoPay + QR Code gerado localmente
 
-import QRCode from 'qrcode';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const QRCode  = require('qrcode');
 
 const FLEVOPAY_API = 'https://app.flevopay.com.br/api/v1/transaction';
 const FLEVOPAY_KEY = 'flevopay_sk_4d2f2349cd060b2eb9d2346923037759f1c3b617645417359fc96c8a80ea2429';
@@ -56,8 +58,7 @@ export default async function handler(req, res) {
 
     const qrText = data.qr_code || '';
 
-    // Gera QR Code em base64 localmente com a lib 'qrcode'
-    // FlevoPay retorna qr_code_base64 vazio — por isso geramos aqui
+    // Gera QR Code como data:image/png;base64 — sem API externa
     let qrImageDataUrl = '';
     if (qrText) {
       qrImageDataUrl = await QRCode.toDataURL(qrText, {
@@ -73,14 +74,18 @@ export default async function handler(req, res) {
       success:        true,
       transaction_id: data.transaction_id,
       qr_code_text:   qrText,
-      qr_code_image:  qrImageDataUrl,   // data:image/png;base64,... completo
+      qr_code_image:  qrImageDataUrl,
       amount:         data.amount,
       created_at:     nowUTC(),
       expires_at:     data.expires_at
     });
 
   } catch (err) {
-    console.error('FlevoPay proxy error:', err);
-    return res.status(500).json({ error: 'Erro interno ao gerar PIX', message: err.message });
+    console.error('PIX handler error:', err);
+    return res.status(500).json({
+      error:   'Erro interno ao gerar PIX',
+      message: err.message,
+      stack:   err.stack
+    });
   }
 }
