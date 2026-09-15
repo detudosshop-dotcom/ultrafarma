@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   function formatMoney(val) {
-    return 'R$ ' + (val || 0).toFixed(2).replace('.', ',');
+    return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\s+/, ' ');
   }
 
   // Galeria de Fotos
@@ -242,16 +242,63 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnCalcularFrete = document.getElementById('btn-calc-frete-pdp');
   const cepInput = document.getElementById('cep-pdp-input');
   const freteOutput = document.getElementById('frete-result-pdp');
+  function getDeliveryDateRange(minDays, maxDays) {
+    function addBusinessDays(date, days) {
+      const result = new Date(date);
+      let added = 0;
+      while (added < days) {
+        result.setDate(result.getDate() + 1);
+        const dayOfWeek = result.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          added++;
+        }
+      }
+      return result;
+    }
+
+    const now = new Date();
+    const dateMin = addBusinessDays(now, minDays);
+    const dateMax = addBusinessDays(now, maxDays);
+
+    const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    const weekDays = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+
+    const dayMin = dateMin.getDate();
+    const dayMax = dateMax.getDate();
+    const monthMin = months[dateMin.getMonth()];
+    const monthMax = months[dateMax.getMonth()];
+    const weekDayMin = weekDays[dateMin.getDay()];
+    const weekDayMax = weekDays[dateMax.getDay()];
+
+    if (monthMin === monthMax) {
+      return 'Chegará entre <strong>' + weekDayMin + ', ' + dayMin + '</strong> e <strong>' + weekDayMax + ', ' + dayMax + ' de ' + monthMax + '</strong>';
+    } else {
+      return 'Chegará entre <strong>' + dayMin + ' de ' + monthMin + '</strong> e <strong>' + dayMax + ' de ' + monthMax + '</strong>';
+    }
+  }
 
   function renderFreteResult() {
     if (!freteOutput) return;
+    const dateGratis = getDeliveryDateRange(3, 4);
+    const dateExpresso = getDeliveryDateRange(2, 3);
     freteOutput.innerHTML = `
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;margin-top:8px;font-size:12px;">
-        <div style="display:flex;justify-content:space-between;color:#166534;font-weight:700;">
-          <span>🚚 Sedex Refrigerado (2°C a 8°C):</span>
-          <span style="color:#009640;">GRÁTIS (Cortesia Especial)</span>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;color:#166534;font-weight:700;">
+          <span>🚚 Sedex Especial Refrigerado (2°C a 8°C):</span>
+          <span style="color:#009640;font-size:13px;font-weight:800;">GRÁTIS</span>
         </div>
-        <div style="font-size:11px;color:#4b5563;margin-top:4px;">Embalagem isotérmica especial com gel biológico lacrado. Prazo: 1 a 2 dias úteis.</div>
+        <div style="font-size:11px;color:#15803d;margin-top:4px;font-weight:600;">
+          📅 Prazo: <strong>3 a 4 dias úteis</strong> • ${dateGratis}
+        </div>
+        <div style="font-size:11px;color:#4b5563;margin-top:2px;">Embalagem isotérmica especial com gel biológico lacrado e controle de temperatura.</div>
+
+        <div style="border-top:1px dashed #cbd5e1;margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:700;color:#1e293b;">⚡ Entrega Expressa Refrigerada (2 a 3 dias úteis):</span>
+          <span style="font-weight:800;color:#003399;">R$ 14,90</span>
+        </div>
+        <div style="font-size:11px;color:#003399;margin-top:2px;font-weight:600;">
+          📅 Prazo: <strong>2 a 3 dias úteis</strong> • ${dateExpresso}
+        </div>
       </div>
     `;
   }
@@ -336,4 +383,15 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+
+  // 12. Restaura CEP prévio se existir
+  try {
+    const savedCep = localStorage.getItem('monja_user_cep');
+    if (savedCep && cepInput) {
+      let formatted = savedCep.replace(/\D/g, '').slice(0, 8);
+      if (formatted.length > 5) formatted = formatted.slice(0, 5) + '-' + formatted.slice(5);
+      cepInput.value = formatted;
+      renderFreteResult();
+    }
+  } catch(e) {}
 });

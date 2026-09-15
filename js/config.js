@@ -26,8 +26,8 @@ window.STORE_CONFIG = {
     images: [
       {
         id: "img-1",
-        thumb: '/images/tirzepatida-all.png",
-        large: '/images/tirzepatida-all.png",
+        thumb: "/images/tirzepatida-all.png",
+        large: "/images/tirzepatida-all.png",
         alt: "Tirzepatida T.G. Solução Injetável - Todas as Dosagens Disponíveis"
       }
     ],

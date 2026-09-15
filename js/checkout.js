@@ -100,7 +100,49 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function formatMoney(val) {
-    return 'R$ ' + (val || 0).toFixed(2).replace('.', ',');
+    return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\s+/, ' ');
+  }
+
+  function getDeliveryDateRange(minDays, maxDays) {
+    function addBusinessDays(date, days) {
+      const result = new Date(date);
+      let added = 0;
+      while (added < days) {
+        result.setDate(result.getDate() + 1);
+        const dayOfWeek = result.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          added++;
+        }
+      }
+      return result;
+    }
+
+    const now = new Date();
+    const dateMin = addBusinessDays(now, minDays);
+    const dateMax = addBusinessDays(now, maxDays);
+
+    const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    const weekDays = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+
+    const dayMin = dateMin.getDate();
+    const dayMax = dateMax.getDate();
+    const monthMin = months[dateMin.getMonth()];
+    const monthMax = months[dateMax.getMonth()];
+    const weekDayMin = weekDays[dateMin.getDay()];
+    const weekDayMax = weekDays[dateMax.getDay()];
+
+    if (monthMin === monthMax) {
+      return 'Chegará entre <strong>' + weekDayMin + ', ' + dayMin + '</strong> e <strong>' + weekDayMax + ', ' + dayMax + ' de ' + monthMax + '</strong>';
+    } else {
+      return 'Chegará entre <strong>' + dayMin + ' de ' + monthMin + '</strong> e <strong>' + dayMax + ' de ' + monthMax + '</strong>';
+    }
+  }
+
+  function updateShippingDates() {
+    const normalEl = document.getElementById('shipping-date-normal');
+    const expressEl = document.getElementById('shipping-date-express');
+    if (normalEl) normalEl.innerHTML = '📅 ' + getDeliveryDateRange(3, 4);
+    if (expressEl) expressEl.innerHTML = '📅 ' + getDeliveryDateRange(2, 3);
   }
 
   // Renderiza Cesta do Passo 1
@@ -282,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderAll() {
     renderCartTable();
     renderSummary();
+    updateShippingDates();
   }
 
   // =========================================================================
@@ -371,20 +414,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const totals = calculateTotals();
         const normalCostText = totals.isFreeShipping ? '<strong class="free">GRÁTIS</strong>' : '<strong>R$ 14,90</strong>';
 
+        const dateNormal = getDeliveryDateRange(3, 4);
+        const dateExpress = getDeliveryDateRange(2, 3);
+
         if (cartCepFeedback) {
           cartCepFeedback.innerHTML = `
             <div class="cep-preview-result-box">
               <div class="cep-preview-location">
-                📍 <span>Envio para: <strong>${data.localidade} - ${data.uf}</strong> ${data.bairro ? '(' + data.bairro + ')' : ''}</span>
+                📍 <span>Envio refrigerado para: <strong>${data.localidade} - ${data.uf}</strong> ${data.bairro ? '(' + data.bairro + ')' : ''}</span>
               </div>
               <div class="cep-preview-options">
                 <div class="cep-preview-option-row">
-                  <span>🚚 Entrega Normal (3 a 5 dias úteis):</span>
+                  <div>
+                    <span>🚚 Sedex Especial Refrigerado (3 a 4 dias úteis):</span>
+                    <div style="font-size:11px;color:#009640;font-weight:600;margin-top:2px;">📅 ${dateNormal}</div>
+                  </div>
                   ${normalCostText}
                 </div>
                 <div class="cep-preview-option-row">
-                  <span>⚡ Sedex Expresso (1 a 2 dias úteis):</span>
-                  <strong>R$ 19,90</strong>
+                  <div>
+                    <span>⚡ Entrega Expressa no Gelo (2 a 3 dias úteis):</span>
+                    <div style="font-size:11px;color:#003399;font-weight:600;margin-top:2px;">📅 ${dateExpress}</div>
+                  </div>
+                  <strong>R$ 14,90</strong>
                 </div>
               </div>
             </div>

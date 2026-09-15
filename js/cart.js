@@ -146,7 +146,7 @@
     },
 
     formatMoney: function(val) {
-      return 'R$ ' + (val || 0).toFixed(2).replace('.', ',');
+      return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\s+/, ' ');
     },
 
     updateBadges: function() {
