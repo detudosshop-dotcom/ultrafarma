@@ -1,10 +1,6 @@
-{
-  "outputDirectory": ".",
+﻿{
   "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/checkout",
-      "destination": "/checkout.html"
-    }
+    { "source": "/checkout", "destination": "/checkout.html" }
   ]
 }

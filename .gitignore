@@ -1,4 +1,6 @@
-﻿# Dependencies
+﻿# Local server & package
+package.json
+local-server.js
 node_modules/
 
 # Local previews and temporary files
