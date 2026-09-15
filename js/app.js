@@ -215,6 +215,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.CartManager) {
         window.CartManager.addItem(getProductToAdd(), qty);
       }
+      // Redireciona para o checkout após adicionar
+      setTimeout(() => {
+        window.location.href = 'checkout.html';
+      }, 350);
     });
   }
 
@@ -229,6 +233,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.CartManager) {
         window.CartManager.addItem(getProductToAdd(), qty);
       }
+      // Redireciona para o checkout
+      setTimeout(() => {
+        window.location.href = 'checkout.html';
+      }, 350);
     });
   });
 

@@ -19,8 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (stored) cart = JSON.parse(stored);
     } catch (e) {}
 
+    // Se o carrinho estiver vazio, cria um item padrão usando o config atual
     if (!cart.items || cart.items.length === 0) {
-      const defaultVar = (config.product && config.product.variants) ? config.product.variants[0] : null;
+      const allVariants = (config.product && config.product.variants) ? config.product.variants : [];
+      const defaultVar = allVariants[0] || null;
       cart.items = [{
         id: defaultVar ? defaultVar.id : 'tirz-2-5',
         variantId: defaultVar ? defaultVar.id : 'tirz-2-5',
@@ -29,18 +31,47 @@ document.addEventListener('DOMContentLoaded', function() {
         dosage: defaultVar ? defaultVar.dosage : '2,5 mg',
         volume: defaultVar ? defaultVar.volume : '0,5 mL',
         color: defaultVar ? defaultVar.color : '#6b7280',
-        image: '/images/tirzepatida-all.png',
-        unitPrice: defaultVar ? defaultVar.pricePromo : 1099.00,
-        progressivePrice2: defaultVar ? defaultVar.progressivePrice2 : 989.10,
-        priceOriginal: defaultVar ? defaultVar.priceOriginal : 1490.00,
+        image: '/images/box-2-5.jpg',
+        unitPrice: defaultVar ? defaultVar.pricePromo : 219.80,
+        progressivePrice2: defaultVar ? defaultVar.progressivePrice2 : 197.82,
+        priceOriginal: defaultVar ? defaultVar.priceOriginal : 1099.00,
         quantity: 1
       }];
     }
 
-    // Calcula unitPrice correto baseado em faixas de desconto progressivo de cada item
+    // Atualiza preços dos itens que possam estar desatualizados no localStorage
+    const allVariants = (config.product && config.product.variants) ? config.product.variants : [];
+    if (cart.items && allVariants.length > 0) {
+      cart.items = cart.items.map(item => {
+        const freshVar = allVariants.find(v => v.id === item.id || v.id === item.variantId);
+        if (freshVar) {
+          item.unitPrice = freshVar.pricePromo;
+          item.progressivePrice2 = freshVar.progressivePrice2;
+          item.priceOriginal = freshVar.priceOriginal;
+          item.title = freshVar.title || item.title;
+          item.dosage = freshVar.dosage || item.dosage;
+          item.color = freshVar.color || item.color;
+          // Atualiza a imagem se estiver ausente ou antiga
+          const imgMap = {
+            'tirz-2-5': '/images/box-2-5.jpg',
+            'tirz-5-0': '/images/box-5-0.jpg',
+            'tirz-7-5': '/images/box-7-5.jpg',
+            'tirz-10-0': '/images/box-10-0.jpg',
+            'tirz-12-5': '/images/box-12-5.jpg',
+            'tirz-15-0': '/images/box-15-0.jpg'
+          };
+          if (!item.image || item.image.includes('tirzepatida-all')) {
+            item.image = imgMap[item.id] || '/images/tirzepatida-all.png';
+          }
+        }
+        return item;
+      });
+    }
+
+    // Recalcula currentUnitPrice baseado na quantidade
     if (cart.items) {
       cart.items.forEach(item => {
-        let price = item.unitPrice || 1099.00;
+        let price = item.unitPrice || 219.80;
         if (item.quantity >= 2 && item.progressivePrice2) {
           price = item.progressivePrice2;
         }
