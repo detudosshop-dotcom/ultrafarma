@@ -1,0 +1,12 @@
+{
+  "name": "monja-ultrafarma-clone",
+  "version": "1.0.0",
+  "description": "Clone idêntico e customizável da página de produto da Ultrafarma com fluxo até o pagamento",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["ecommerce", "ultrafarma", "clone", "checkout"],
+  "author": "",
+  "license": "ISC"
+}

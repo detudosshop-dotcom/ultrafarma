@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cesta e Checkout Seguro - Tirzepatida T.G. - Ultrafarma</title>
+  <link rel="icon" href="https://cdn.ultrafarma.com.br/static/layout/144x144.png?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/checkout.css">
+</head>
+<body>
+
+  <!-- Top Promo Banner -->
+  <div style="background:#f0f7ff;border-bottom:1px solid #dce8fa;text-align:center;padding:6px 12px;font-size:11px;font-weight:700;color:#003399;">
+    Pague com PIX e ganhe <span style="color:#e02b2b;">3% de desconto</span>
+  </div>
+
+  <!-- Header do Checkout Oficial Ultrafarma -->
+  <header class="checkout-header">
+    <div class="checkout-header-container">
+      <a href="index.html" class="checkout-logo">
+        <img src="https://cdn.ultrafarma.com.br/static/layout/ultrafarma-logo-branca-original.png" alt="Ultrafarma" style="background:#003399;padding:6px 14px;border-radius:6px;height:38px;">
+      </a>
+      <div class="checkout-secure-badge">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="#009640">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+        </svg>
+        <span>Ambiente 100% Seguro</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stepper de 4 Passos Ultrafarma -->
+  <div class="checkout-stepper-container">
+    <div class="checkout-stepper">
+      <div class="step-item active" id="step-nav-1">
+        <div class="step-circle">1</div>
+        <span class="step-label">Cesta</span>
+      </div>
+      <div class="step-line" id="line-1"></div>
+      
+      <div class="step-item" id="step-nav-2">
+        <div class="step-circle">2</div>
+        <span class="step-label">Entrega</span>
+      </div>
+      <div class="step-line" id="line-2"></div>
+      
+      <div class="step-item" id="step-nav-3">
+        <div class="step-circle">3</div>
+        <span class="step-label">Pagamento</span>
+      </div>
+      <div class="step-line" id="line-3"></div>
+      
+      <div class="step-item" id="step-nav-4">
+        <div class="step-circle">4</div>
+        <span class="step-label">Confirmação</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container Principal do Checkout -->
+  <main class="checkout-main-container">
+    <div class="checkout-grid">
+
+      <!-- Coluna Principal (Passos) -->
+      <div class="checkout-steps-column">
+
+        <!-- ==========================================
+             PASSO 1: CESTA DE COMPRAS (OFICIAL ULTRAFARMA)
+             ========================================== -->
+        <div class="checkout-step-pane active" id="pane-step-1">
+          
+          <!-- Barra de Progresso de Frete Grátis -->
+          <div class="frete-progress-card" id="frete-progress-card">
+            <div class="frete-progress-header">
+              <span class="frete-truck-icon">🚚</span>
+              <span class="frete-progress-text" id="frete-progress-text">Faltam R$ 2,01 para Frete Grátis!</span>
+            </div>
+            <div class="frete-progress-bar-bg">
+              <div class="frete-progress-bar-fill" id="frete-progress-fill" style="width: 98%;"></div>
+            </div>
+          </div>
+
+          <div class="checkout-card">
+            <h2 class="card-inner-title">
+              <svg width="20" height="20" fill="#003399" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+              Itens na Cesta
+            </h2>
+
+            <div id="cart-table-items">
+              <!-- Renderizado dinamicamente via checkout.js -->
+            </div>
+
+            <!-- Grupo de Cupom e Frete na Cesta -->
+            <div class="cart-addons-row">
+              <div class="cart-addon-box">
+                <label for="input-coupon">Cupom de Desconto:</label>
+                <div class="input-with-btn">
+                  <input type="text" id="input-coupon" placeholder="Ex: ULTRA10" style="text-transform:uppercase;">
+                  <button type="button" class="btn-secondary" id="btn-apply-coupon">Aplicar</button>
+                </div>
+                <div id="coupon-feedback" style="font-size:11px;margin-top:4px;"></div>
+              </div>
+
+              <div class="cart-addon-box">
+                <label for="cart-cep-input">Calcular Frete na Cesta:</label>
+                <div class="input-with-btn">
+                  <input type="text" id="cart-cep-input" placeholder="00000-000" maxlength="9">
+                  <button type="button" class="btn-secondary" id="btn-calc-cart-cep">Calcular</button>
+                </div>
+                <div id="cart-cep-feedback" style="font-size:11px;margin-top:4px;"></div>
+              </div>
+            </div>
+
+            <!-- Botões de Ação do Passo 1 -->
+            <div class="step-actions-footer">
+              <a href="index.html" class="btn-continue-shopping-link">
+                &larr; Continuar Comprando
+              </a>
+              <button type="button" class="btn-step-next" id="btn-go-to-step-2">
+                Avançar para a Entrega &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PASSO 2: IDENTIFICAÇÃO E ENTREGA
+             ========================================== -->
+        <div class="checkout-step-pane" id="pane-step-2">
+          <div class="checkout-card">
+            <h2 class="card-inner-title">
+              <span class="step-mini-num">1</span>
+              Dados Pessoais
+            </h2>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-name">Nome Completo *</label>
+                <input type="text" id="input-name" placeholder="Ex: Maria da Silva" required>
+              </div>
+              <div class="form-group">
+                <label for="input-email">E-mail para Confirmação *</label>
+                <input type="email" id="input-email" placeholder="seu@email.com" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-cpf">CPF *</label>
+                <input type="text" id="input-cpf" placeholder="000.000.000-00" maxlength="14" required>
+              </div>
+              <div class="form-group">
+                <label for="input-phone">WhatsApp / Celular *</label>
+                <input type="text" id="input-phone" placeholder="(11) 99999-9999" maxlength="15" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="checkout-card">
+            <h2 class="card-inner-title">
+              <span class="step-mini-num">2</span>
+              Endereço de Entrega
+            </h2>
+            <div class="form-row">
+              <div class="form-group col-4">
+                <label for="input-cep">CEP *</label>
+                <div class="input-with-btn">
+                  <input type="text" id="input-cep" placeholder="00000-000" maxlength="9" required>
+                  <button type="button" class="btn-secondary" id="btn-search-cep">Buscar</button>
+                </div>
+              </div>
+              <div class="form-group col-8">
+                <label for="input-street">Rua / Logradouro *</label>
+                <input type="text" id="input-street" placeholder="Rua ou Avenida" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-3">
+                <label for="input-number">Número *</label>
+                <input type="text" id="input-number" placeholder="123" required>
+              </div>
+              <div class="form-group col-9">
+                <label for="input-complement">Complemento</label>
+                <input type="text" id="input-complement" placeholder="Apto, Bloco, Casa 2...">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-neighborhood">Bairro *</label>
+                <input type="text" id="input-neighborhood" placeholder="Bairro" required>
+              </div>
+              <div class="form-group">
+                <label for="input-city">Cidade *</label>
+                <input type="text" id="input-city" placeholder="Cidade" required>
+              </div>
+              <div class="form-group" style="max-width: 90px;">
+                <label for="input-state">UF *</label>
+                <input type="text" id="input-state" placeholder="SP" maxlength="2" required>
+              </div>
+            </div>
+
+            <div class="cold-shipping-badge-checkout">
+              <span>❄️</span>
+              <div>
+                <strong>Cadeia de Frio Garantida (2°C a 8°C):</strong><br>
+                Seu medicamento será transportado em embalagem térmica com gel biológico lacrado e controle estrito de temperatura.
+              </div>
+            </div>
+
+            <label style="font-size:13px;font-weight:700;color:#334155;margin-top:12px;display:block;">Opção de Envio:</label>
+            <div class="shipping-options">
+              <label class="shipping-option-item selected" for="shipping-normal">
+                <div class="shipping-radio-label">
+                  <input type="radio" name="shipping_option" id="shipping-normal" value="0.00" checked>
+                  <span>❄️ <strong>Sedex Especial Refrigerado (2°C a 8°C)</strong> (1 a 2 dias úteis)</span>
+                </div>
+                <span class="shipping-price" id="shipping-normal-label" style="color:#009640;font-weight:800;">GRÁTIS</span>
+              </label>
+              <label class="shipping-option-item" for="shipping-express">
+                <div class="shipping-radio-label">
+                  <input type="radio" name="shipping_option" id="shipping-express" value="14.90">
+                  <span>⚡ <strong>Entrega Expressa Same-Day no Gelo</strong> (até às 22h de hoje)</span>
+                </div>
+                <span class="shipping-price">R$ 14,90</span>
+            </div>
+
+            <div class="step-actions-footer">
+              <button type="button" class="btn-step-prev" id="btn-back-to-step-1">
+                &larr; Voltar para a Cesta
+              </button>
+              <button type="button" class="btn-step-next" id="btn-go-to-step-3">
+                Avançar para o Pagamento &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             PASSO 3: PAGAMENTO
+             ========================================== -->
+        <div class="checkout-step-pane" id="pane-step-3">
+          <div class="checkout-card">
+            <h2 class="card-inner-title">
+              <span class="step-mini-num">3</span>
+              Pagamento Instantâneo via PIX
+            </h2>
+
+            <div class="pix-exclusive-container">
+              <div class="pix-exclusive-header">
+                <span class="pix-tag-instant">⚡ PAGAMENTO EXCLUSIVO PIX</span>
+                <span class="pix-tag-off">3% DE DESCONTO APLICADO</span>
+              </div>
+
+              <div class="pix-content-box">
+                <p style="font-size:13px;color:#334155;margin-bottom:12px;line-height:1.4;">
+                  Escaneie o QR Code com o aplicativo do seu banco ou utilize a chave <strong>Copia e Cola</strong> abaixo para pagar com desconto imediato:
+                </p>
+                
+                <div class="pix-qr-container">
+                  <svg viewBox="0 0 200 200" width="180" height="180">
+                    <rect width="200" height="200" fill="#ffffff"/>
+                    <rect x="15" y="15" width="50" height="50" fill="#000"/>
+                    <rect x="22" y="22" width="36" height="36" fill="#fff"/>
+                    <rect x="29" y="29" width="22" height="22" fill="#000"/>
+                    <rect x="135" y="15" width="50" height="50" fill="#000"/>
+                    <rect x="142" y="22" width="36" height="36" fill="#fff"/>
+                    <rect x="149" y="29" width="22" height="22" fill="#000"/>
+                    <rect x="15" y="135" width="50" height="50" fill="#000"/>
+                    <rect x="22" y="142" width="36" height="36" fill="#fff"/>
+                    <rect x="29" y="149" width="22" height="22" fill="#000"/>
+                    <rect x="75" y="20" width="12" height="12" fill="#000"/>
+                    <rect x="95" y="20" width="12" height="12" fill="#000"/>
+                    <rect x="115" y="20" width="12" height="12" fill="#000"/>
+                    <rect x="75" y="40" width="20" height="12" fill="#000"/>
+                    <rect x="105" y="40" width="12" height="12" fill="#000"/>
+                    <rect x="75" y="60" width="12" height="20" fill="#000"/>
+                    <rect x="95" y="60" width="20" height="12" fill="#000"/>
+                    <rect x="75" y="85" width="50" height="50" fill="#009640" rx="6"/>
+                    <path d="M90 110l6 6 14-14" stroke="#fff" stroke-width="4" fill="none"/>
+                    <rect x="75" y="145" width="20" height="12" fill="#000"/>
+                    <rect x="105" y="145" width="12" height="12" fill="#000"/>
+                    <rect x="135" y="145" width="20" height="12" fill="#000"/>
+                  </svg>
+                </div>
+
+                <div class="pix-copy-box">
+                  <input type="text" id="pix-copia-cola" readonly value="00020126580014br.gov.bcb.pix013602543945000690520400005303986540571.295802BR5923ULTRAFARMA SAUDE EIRELI6009SAO PAULO62070503***6304A1B2">
+                  <button type="button" class="btn-copy-pix" id="btn-copy-pix">Copiar Código PIX</button>
+                </div>
+
+                <div class="pix-secure-notice">
+                  🔒 <span>Ambiente seguro. A confirmação do pagamento é instantânea e o envio do medicamento no gelo será providenciado imediatamente.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-actions-footer">
+              <button type="button" class="btn-step-prev" id="btn-back-to-step-2">
+                &larr; Voltar para Entrega
+              </button>
+              <button type="button" class="btn-step-next btn-finalize" id="btn-finalize-order">
+                Finalizar Pedido
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Coluna Direita: Resumo do Pedido -->
+      <div class="checkout-summary-column">
+        <div class="order-summary-card">
+          <h3 class="order-summary-title">Resumo do Pedido</h3>
+
+          <div class="order-summary-items" id="checkout-items-list"></div>
+
+          <div class="summary-rows">
+            <div class="summary-row">
+              <span>Subtotal:</span>
+              <strong id="summary-subtotal">R$ 0,00</strong>
+            </div>
+            <div class="summary-row">
+              <span>Frete:</span>
+              <strong id="summary-shipping">R$ 14,90</strong>
+            </div>
+            <div class="summary-row discount" id="summary-discount-row" style="display:none;">
+              <span>Desconto PIX (3%):</span>
+              <strong id="summary-discount">- R$ 0,00</strong>
+            </div>
+            <div class="summary-row total">
+              <span>Total:</span>
+              <strong id="summary-total">R$ 0,00</strong>
+            </div>
+          </div>
+
+          <p class="order-guarantee-text">
+            🔒 Compra protegida com garantia de entrega e suporte oficial Ultrafarma.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal de Confirmação de Sucesso (Passo 4) -->
+  <div class="modal-success-overlay" id="modal-success" style="display:none;">
+    <div class="modal-success-box">
+      <div class="success-check-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <h2>Pedido Realizado com Sucesso!</h2>
+      <p>Obrigado por comprar na Ultrafarma. Enviamos todos os detalhes para o seu e-mail.</p>
+      
+      <div class="order-code-badge">
+        Número do Pedido: <span id="success-order-number">#ULT-849201</span>
+      </div>
+
+      <div>
+        <a href="index.html" class="btn-back-home">Voltar para a Página do Produto</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/config.js"></script>
+  <script src="./js/location.js"></script>
+  <script src="./js/cart.js"></script>
+  <script src="./js/checkout.js"></script>
+
+</body>
+</html>

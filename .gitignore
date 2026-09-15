@@ -1,0 +1,9 @@
+﻿# Dependencies
+node_modules/
+
+# Local previews and temporary files
+.tmp*/
+/preview_*.png
+/mobile_*.png
+*.log
+scratch/

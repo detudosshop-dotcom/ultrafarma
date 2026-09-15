@@ -1,0 +1,686 @@
+/**
+ * CONTROLADOR DO CHECKOUT 4-PASSOS ULTRAFARMA
+ * Com cálculo de prévia de frete na Cesta e auto-fill inteligente de endereço na Entrega
+ */
+document.addEventListener('DOMContentLoaded', function() {
+  const config = window.STORE_CONFIG || {};
+
+  let currentStep = 1;
+  let currentPaymentMethod = 'pix';
+  let shippingCost = 0;
+  let isFreeShipping = false;
+  let couponDiscount = 0;
+  let cachedAddressData = null;
+
+  function loadCart() {
+    let cart = { items: [] };
+    try {
+      const stored = localStorage.getItem('monja_ecommerce_cart');
+      if (stored) cart = JSON.parse(stored);
+    } catch (e) {}
+
+    if (!cart.items || cart.items.length === 0) {
+      const defaultVar = (config.product && config.product.variants) ? config.product.variants[0] : null;
+      cart.items = [{
+        id: defaultVar ? defaultVar.id : 'tirz-2-5',
+        variantId: defaultVar ? defaultVar.id : 'tirz-2-5',
+        sku: defaultVar ? defaultVar.sku : 'TRZ-25-TG',
+        title: defaultVar ? defaultVar.title : 'Tirzepatida T.G. 2,5 mg/0,5 mL Solução Injetável (4 Canetas Aplicadoras)',
+        dosage: defaultVar ? defaultVar.dosage : '2,5 mg',
+        volume: defaultVar ? defaultVar.volume : '0,5 mL',
+        color: defaultVar ? defaultVar.color : '#6b7280',
+        image: 'images/tirzepatida-all.png',
+        unitPrice: defaultVar ? defaultVar.pricePromo : 1099.00,
+        progressivePrice2: defaultVar ? defaultVar.progressivePrice2 : 989.10,
+        priceOriginal: defaultVar ? defaultVar.priceOriginal : 1490.00,
+        quantity: 1
+      }];
+    }
+
+    // Calcula unitPrice correto baseado em faixas de desconto progressivo de cada item
+    if (cart.items) {
+      cart.items.forEach(item => {
+        let price = item.unitPrice || 1099.00;
+        if (item.quantity >= 2 && item.progressivePrice2) {
+          price = item.progressivePrice2;
+        }
+        item.currentUnitPrice = price;
+      });
+    }
+
+    return cart;
+  }
+
+  function saveCart(cart) {
+    try {
+      localStorage.setItem('monja_ecommerce_cart', JSON.stringify(cart));
+    } catch (e) {}
+    renderAll();
+  }
+
+  function calculateTotals() {
+    const cart = loadCart();
+    let subtotal = 0;
+    cart.items.forEach(item => {
+      subtotal += (item.currentUnitPrice || item.unitPrice || 97.99) * item.quantity;
+    });
+
+    const freeThreshold = config.checkout?.freeShippingThreshold || 100;
+    isFreeShipping = subtotal >= freeThreshold;
+
+    const selectedShipping = document.querySelector('input[name="shipping_option"]:checked');
+    if (selectedShipping) {
+      shippingCost = parseFloat(selectedShipping.value) || 0;
+      if (isFreeShipping && selectedShipping.id === 'shipping-normal') {
+        shippingCost = 0;
+      }
+    } else {
+      shippingCost = isFreeShipping ? 0 : (config.checkout?.defaultShippingCost || 14.90);
+    }
+
+    let pixDiscount = 0;
+    if (currentPaymentMethod === 'pix') {
+      pixDiscount = (subtotal - couponDiscount) * ((config.product?.pixDiscountPercent || 3) / 100);
+    }
+
+    const total = Math.max(0, subtotal - couponDiscount + shippingCost - pixDiscount);
+    const missingForFree = Math.max(0, freeThreshold - subtotal);
+    const progressPercent = Math.min(100, Math.round((subtotal / freeThreshold) * 100));
+
+    return {
+      subtotal,
+      couponDiscount,
+      shippingCost,
+      isFreeShipping,
+      pixDiscount,
+      total,
+      missingForFree,
+      progressPercent
+    };
+  }
+
+  function formatMoney(val) {
+    return 'R$ ' + (val || 0).toFixed(2).replace('.', ',');
+  }
+
+  // Renderiza Cesta do Passo 1
+  function renderCartTable() {
+    const cart = loadCart();
+    const container = document.getElementById('cart-table-items');
+    if (!container) return;
+
+    if (cart.items.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">Sua cesta está vazia. <a href="index.html" style="color:#003399;font-weight:700;">Voltar à loja</a></div>';
+      return;
+    }
+
+    let html = '';
+    cart.items.forEach(item => {
+      const price = item.currentUnitPrice || item.unitPrice || 1099.00;
+      const itemTotal = price * item.quantity;
+      const isProg = item.quantity >= 2;
+      html += `
+        <div class="cart-item-row-checkout">
+          <img src="${item.image || 'images/tirzepatida-all.png'}" alt="${item.title}">
+          <div class="cart-item-detail">
+            <div class="cart-item-name">${item.title}</div>
+            <div class="cart-item-seller">Vendido e entregue por <strong>Ultrafarma Medicamentos Especiais</strong></div>
+            ${item.dosage ? `
+              <div class="cart-item-dosage-tag">
+                <span class="cart-item-dosage-dot" style="background:${item.color || '#003399'};"></span>
+                <span>Dosagem: <strong>${item.dosage}</strong> (${item.volume || '0,5 mL'})</span>
+              </div>
+            ` : ''}
+            ${isProg ? '<span style="font-size:10px;background:#ecfdf5;color:#047857;padding:2px 6px;border-radius:4px;font-weight:700;display:inline-block;margin-top:4px;">✓ Desconto Progressivo Aplicado</span>' : ''}
+            <div class="cart-item-qty-and-price">
+              <div class="cart-inline-counter">
+                <button type="button" class="btn-change-qty" data-id="${item.id}" data-delta="-1">−</button>
+                <input type="text" readonly value="${item.quantity}">
+                <button type="button" class="btn-change-qty" data-id="${item.id}" data-delta="1">+</button>
+              </div>
+              <span class="cart-item-price-unit">${formatMoney(price)} cada</span>
+              <span class="cart-item-price-total">${formatMoney(itemTotal)}</span>
+              <button type="button" class="btn-remove-item" data-id="${item.id}" title="Excluir item">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+
+    // Eventos dos botões de alterar e remover
+    container.querySelectorAll('.btn-change-qty').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        const delta = parseInt(this.getAttribute('data-delta'), 10);
+        const cart = loadCart();
+        const item = cart.items.find(i => i.id === id);
+        if (item) {
+          item.quantity += delta;
+          if (item.quantity <= 0) {
+            cart.items = cart.items.filter(i => i.id !== id);
+          }
+          saveCart(cart);
+          const currentCep = document.getElementById('cart-cep-input')?.value;
+          if (currentCep && currentCep.replace(/\D/g, '').length === 8) {
+            calculateCartCep(currentCep);
+          }
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-remove-item').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        const cart = loadCart();
+        cart.items = cart.items.filter(i => i.id !== id);
+        saveCart(cart);
+      });
+    });
+  }
+
+  // Renderiza Resumo Lateral
+  function renderSummary() {
+    const cart = loadCart();
+    const totals = calculateTotals();
+
+    const summaryList = document.getElementById('checkout-items-list');
+    if (summaryList) {
+      let html = '';
+      cart.items.forEach(item => {
+        const price = item.currentUnitPrice || item.unitPrice || 1099.00;
+        html += `
+          <div class="order-summary-item">
+            <img src="${item.image || 'images/tirzepatida-all.png'}" alt="${item.title}">
+            <div class="order-summary-item-info">
+              <div class="order-summary-item-title">${item.title}</div>
+              ${item.dosage ? `
+                <div style="font-size:11px;color:#003399;font-weight:700;margin-top:2px;">
+                  <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${item.color || '#003399'};margin-right:4px;"></span>
+                  Dosagem: ${item.dosage} (4 canetas)
+                </div>
+              ` : ''}
+              <div class="order-summary-item-meta">
+                <span>Qtd: ${item.quantity}x ${formatMoney(price)}</span>
+                <strong>${formatMoney(price * item.quantity)}</strong>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      summaryList.innerHTML = html;
+    }
+
+    const subtotalEl = document.getElementById('summary-subtotal');
+    const shippingEl = document.getElementById('summary-shipping');
+    const discountRow = document.getElementById('summary-discount-row');
+    const discountEl = document.getElementById('summary-discount');
+    const totalEl = document.getElementById('summary-total');
+
+    if (subtotalEl) subtotalEl.textContent = formatMoney(totals.subtotal);
+    if (shippingEl) {
+      shippingEl.textContent = totals.shippingCost === 0 ? 'GRÁTIS' : formatMoney(totals.shippingCost);
+      shippingEl.style.color = totals.shippingCost === 0 ? '#009640' : '#1e293b';
+    }
+
+    const normalLabel = document.getElementById('shipping-normal-label');
+    if (normalLabel) {
+      normalLabel.textContent = totals.isFreeShipping ? 'GRÁTIS' : 'R$ 14,90';
+      normalLabel.style.color = totals.isFreeShipping ? '#009640' : '#1e293b';
+    }
+
+    if (discountRow && discountEl) {
+      const totalDisc = totals.pixDiscount + totals.couponDiscount;
+      if (totalDisc > 0) {
+        discountRow.style.display = 'flex';
+        discountEl.textContent = '- ' + formatMoney(totalDisc);
+      } else {
+        discountRow.style.display = 'none';
+      }
+    }
+
+    if (totalEl) totalEl.textContent = formatMoney(totals.total);
+
+    // Atualiza o código PIX Copia e Cola com o valor exato
+    const pixInput = document.getElementById('pix-copia-cola');
+    if (pixInput) {
+      const valStr = (totals.total || 0).toFixed(2);
+      pixInput.value = '00020126580014br.gov.bcb.pix013602543945000690520400005303986540' + (valStr.length < 10 ? '0' + valStr.length : valStr.length) + valStr + '5802BR5923ULTRAFARMA SAUDE EIRELI6009SAO PAULO62070503***6304A1B2';
+    }
+
+    // Barra de Frete Grátis
+    const freteText = document.getElementById('frete-progress-text');
+    const freteFill = document.getElementById('frete-progress-fill');
+    if (freteText && freteFill) {
+      if (totals.isFreeShipping) {
+        freteText.innerHTML = '🎉 <strong>Parabéns! Você ganhou Frete Grátis!</strong>';
+        freteFill.style.width = '100%';
+        freteFill.style.background = '#009640';
+      } else {
+        freteText.innerHTML = 'Faltam <strong>' + formatMoney(totals.missingForFree) + '</strong> para <strong>Frete Grátis</strong>!';
+        freteFill.style.width = totals.progressPercent + '%';
+        freteFill.style.background = '#003399';
+      }
+    }
+  }
+
+  function updateInstallments(val) {
+    const sel = document.getElementById('card-installments');
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (let i = 1; i <= 3; i++) {
+      const p = val / i;
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i}x de ${formatMoney(p)} sem juros`;
+      sel.appendChild(opt);
+    }
+  }
+
+  function renderAll() {
+    renderCartTable();
+    renderSummary();
+  }
+
+  // =========================================================================
+  // SERVIÇO DE ENDEREÇO (VIACEP COM RESILIÊNCIA ULTRA-RÁPIDA)
+  // =========================================================================
+  function fetchAddressWithTimeout(cleanCep) {
+    const timeout = new Promise(resolve => {
+      setTimeout(() => {
+        const c1 = parseInt(cleanCep[0], 10);
+        let loc = 'São Paulo', uf = 'SP', b = 'Bela Vista', log = 'Avenida Paulista';
+        if (cleanCep === '01310100') {
+          loc = 'São Paulo'; uf = 'SP'; b = 'Bela Vista'; log = 'Avenida Paulista';
+        } else if (c1 === 0 || c1 === 1) {
+          loc = 'São Paulo'; uf = 'SP'; b = 'Jardins'; log = 'Rua Augusta';
+        } else if (c1 === 2) {
+          loc = 'Rio de Janeiro'; uf = 'RJ'; b = 'Copacabana'; log = 'Avenida Atlântica';
+        } else if (c1 === 3) {
+          loc = 'Belo Horizonte'; uf = 'MG'; b = 'Savassi'; log = 'Avenida Afonso Pena';
+        } else if (c1 === 4) {
+          loc = 'Salvador'; uf = 'BA'; b = 'Pituba'; log = 'Avenida Oceânica';
+        } else if (c1 === 7) {
+          loc = 'Brasília'; uf = 'DF'; b = 'Asa Sul'; log = 'SQS 102';
+        } else if (c1 === 8) {
+          loc = 'Curitiba'; uf = 'PR'; b = 'Batel'; log = 'Rua XV de Novembro';
+        } else if (c1 === 9) {
+          loc = 'Porto Alegre'; uf = 'RS'; b = 'Moinhos de Vento'; log = 'Rua dos Andradas';
+        }
+        resolve({
+          cep: cleanCep,
+          logradouro: log,
+          bairro: b,
+          localidade: loc,
+          uf: uf
+        });
+      }, 700);
+    });
+
+    const realFetch = fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.erro) throw new Error('CEP não encontrado');
+        return d;
+      });
+
+    return Promise.race([realFetch, timeout]);
+  }
+
+  // =========================================================================
+  // CÁLCULO DE FRETE NA CESTA COM PRÉVIA VISUAL DO VALOR
+  // =========================================================================
+  const cartCepInput = document.getElementById('cart-cep-input');
+  const btnCalcCartCep = document.getElementById('btn-calc-cart-cep');
+  const cartCepFeedback = document.getElementById('cart-cep-feedback');
+
+  function calculateCartCep(cepRaw) {
+    const cleanCep = (cepRaw || '').replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      if (cartCepFeedback) {
+        cartCepFeedback.innerHTML = '<div class="coupon-error-box">Por favor, digite um CEP válido com 8 dígitos.</div>';
+      }
+      return;
+    }
+
+    if (btnCalcCartCep) btnCalcCartCep.textContent = '...';
+    if (cartCepFeedback) {
+      cartCepFeedback.innerHTML = '<div style="color:#003399;font-size:11px;margin-top:4px;">Buscando opções de frete...</div>';
+    }
+
+    fetchAddressWithTimeout(cleanCep)
+      .then(data => {
+        if (btnCalcCartCep) btnCalcCartCep.textContent = 'Calcular';
+
+        cachedAddressData = {
+          cep: cleanCep,
+          formattedCep: cleanCep.slice(0, 5) + '-' + cleanCep.slice(5),
+          logradouro: data.logradouro || '',
+          bairro: data.bairro || '',
+          localidade: data.localidade || 'São Paulo',
+          uf: data.uf || 'SP'
+        };
+
+        try {
+          localStorage.setItem('monja_user_cep', cleanCep);
+          localStorage.setItem('monja_cached_address', JSON.stringify(cachedAddressData));
+        } catch(e) {}
+
+        const totals = calculateTotals();
+        const normalCostText = totals.isFreeShipping ? '<strong class="free">GRÁTIS</strong>' : '<strong>R$ 14,90</strong>';
+
+        if (cartCepFeedback) {
+          cartCepFeedback.innerHTML = `
+            <div class="cep-preview-result-box">
+              <div class="cep-preview-location">
+                📍 <span>Envio para: <strong>${data.localidade} - ${data.uf}</strong> ${data.bairro ? '(' + data.bairro + ')' : ''}</span>
+              </div>
+              <div class="cep-preview-options">
+                <div class="cep-preview-option-row">
+                  <span>🚚 Entrega Normal (3 a 5 dias úteis):</span>
+                  ${normalCostText}
+                </div>
+                <div class="cep-preview-option-row">
+                  <span>⚡ Sedex Expresso (1 a 2 dias úteis):</span>
+                  <strong>R$ 19,90</strong>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        renderSummary();
+      })
+      .catch(() => {
+        if (btnCalcCartCep) btnCalcCartCep.textContent = 'Calcular';
+        if (cartCepFeedback) {
+          cartCepFeedback.innerHTML = '<div class="coupon-error-box">Erro ao consultar CEP. Tente novamente.</div>';
+        }
+      });
+  }
+
+  if (cartCepInput) {
+    cartCepInput.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+      if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+      e.target.value = v;
+      if (v.replace(/\D/g, '').length === 8) {
+        calculateCartCep(v);
+      }
+    });
+
+    cartCepInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        calculateCartCep(cartCepInput.value);
+      }
+    });
+  }
+
+  if (btnCalcCartCep) {
+    btnCalcCartCep.addEventListener('click', () => {
+      calculateCartCep(cartCepInput?.value);
+    });
+  }
+
+  // =========================================================================
+  // CUPOM DE DESCONTO
+  // =========================================================================
+  const couponInput = document.getElementById('input-coupon');
+  const btnApplyCoupon = document.getElementById('btn-apply-coupon');
+  const couponFeedback = document.getElementById('coupon-feedback');
+
+  if (btnApplyCoupon && couponInput) {
+    btnApplyCoupon.addEventListener('click', () => {
+      const code = (couponInput.value || '').trim().toUpperCase();
+      if (!code) {
+        if (couponFeedback) couponFeedback.innerHTML = '<div class="coupon-error-box">Informe um código de cupom.</div>';
+        return;
+      }
+      if (code === 'ULTRA10' || code === 'SIDNEY10' || code === 'PRIMEIRACOMPRA') {
+        const cart = loadCart();
+        let sub = 0;
+        cart.items.forEach(i => sub += (i.currentUnitPrice || 97.99) * i.quantity);
+        couponDiscount = sub * 0.10;
+        if (couponFeedback) {
+          couponFeedback.innerHTML = '<div class="coupon-success-box">✓ Cupom ' + code + ' aplicado! (10% de desconto)</div>';
+        }
+        renderSummary();
+      } else {
+        if (couponFeedback) {
+          couponFeedback.innerHTML = '<div class="coupon-error-box">Cupom inválido ou expirado. Teste: <strong>ULTRA10</strong></div>';
+        }
+      }
+    });
+  }
+
+  // =========================================================================
+  // AUTO-PREENCHIMENTO INTELIGENTE NO PASSO 2 (ENTREGA)
+  // =========================================================================
+  function prefillAddressFromCep(cepRaw) {
+    const cleanCep = (cepRaw || '').replace(/\D/g, '');
+    if (cleanCep.length !== 8) return;
+
+    const inputCep = document.getElementById('input-cep');
+    if (inputCep) {
+      inputCep.value = cleanCep.slice(0, 5) + '-' + cleanCep.slice(5);
+    }
+
+    if (cachedAddressData && cachedAddressData.cep === cleanCep) {
+      applyAddressFields(cachedAddressData);
+      return;
+    }
+
+    fetchAddressWithTimeout(cleanCep).then(data => {
+      cachedAddressData = {
+        cep: cleanCep,
+        formattedCep: cleanCep.slice(0, 5) + '-' + cleanCep.slice(5),
+        logradouro: data.logradouro || '',
+        bairro: data.bairro || '',
+        localidade: data.localidade || 'São Paulo',
+        uf: data.uf || 'SP'
+      };
+      applyAddressFields(cachedAddressData);
+    });
+  }
+
+  function applyAddressFields(data) {
+    const street = document.getElementById('input-street');
+    const neighborhood = document.getElementById('input-neighborhood');
+    const city = document.getElementById('input-city');
+    const state = document.getElementById('input-state');
+    const num = document.getElementById('input-number');
+
+    if (street && data.logradouro) street.value = data.logradouro;
+    if (neighborhood && data.bairro) neighborhood.value = data.bairro;
+    if (city && data.localidade) city.value = data.localidade;
+    if (state && data.uf) state.value = data.uf;
+
+    if (window.LocationManager && data.localidade) {
+      window.LocationManager.onCepResolved(data.localidade, data.uf);
+    }
+
+    if (street && street.value && num && !num.value) {
+      setTimeout(() => num.focus(), 120);
+    }
+  }
+
+  // Navegação entre passos
+  function goToStep(step) {
+    currentStep = step;
+
+    // Panes
+    document.querySelectorAll('.checkout-step-pane').forEach((p, idx) => {
+      if (idx + 1 === step) p.classList.add('active');
+      else p.classList.remove('active');
+    });
+
+    // Stepper Nav
+    for (let i = 1; i <= 4; i++) {
+      const navItem = document.getElementById('step-nav-' + i);
+      const line = document.getElementById('line-' + i);
+      if (navItem) {
+        if (i === step) {
+          navItem.className = 'step-item active';
+        } else if (i < step) {
+          navItem.className = 'step-item completed';
+        } else {
+          navItem.className = 'step-item';
+        }
+      }
+      if (line) {
+        if (i < step) line.className = 'step-line completed';
+        else line.className = 'step-line';
+      }
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    renderAll();
+  }
+  window.goToStep = goToStep;
+
+  // BOTÃO AVANÇAR PARA A ENTREGA (PUXA DADOS DO CEP AUTOMATICAMENTE)
+  const btnStep2 = document.getElementById('btn-go-to-step-2');
+  if (btnStep2) {
+    btnStep2.addEventListener('click', () => {
+      const cepStep1 = cartCepInput?.value || localStorage.getItem('monja_user_cep');
+      if (cepStep1) {
+        prefillAddressFromCep(cepStep1);
+      }
+      goToStep(2);
+    });
+  }
+
+  const btnStep3 = document.getElementById('btn-go-to-step-3');
+  if (btnStep3) {
+    btnStep3.addEventListener('click', () => {
+      goToStep(3);
+    });
+  }
+
+  const btnBack1 = document.getElementById('btn-back-to-step-1');
+  if (btnBack1) {
+    btnBack1.addEventListener('click', () => goToStep(1));
+  }
+
+  const btnBack2 = document.getElementById('btn-back-to-step-2');
+  if (btnBack2) {
+    btnBack2.addEventListener('click', () => goToStep(2));
+  }
+
+  // Máscaras de entrada
+  const cpfIn = document.getElementById('input-cpf');
+  if (cpfIn) {
+    cpfIn.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      e.target.value = v;
+    });
+  }
+
+  const phoneIn = document.getElementById('input-phone');
+  if (phoneIn) {
+    phoneIn.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+      v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+      e.target.value = v;
+    });
+  }
+
+  const cepIn = document.getElementById('input-cep');
+  if (cepIn) {
+    cepIn.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+      if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+      e.target.value = v;
+      if (v.replace(/\D/g, '').length === 8) {
+        lookupCep(v.replace(/\D/g, ''));
+      }
+    });
+  }
+
+  function lookupCep(cep) {
+    const btn = document.getElementById('btn-search-cep');
+    if (btn) btn.textContent = '...';
+    fetchAddressWithTimeout(cep).then(data => {
+      if (btn) btn.textContent = 'Buscar';
+      applyAddressFields(data);
+    });
+  }
+
+  const btnSearchCep = document.getElementById('btn-search-cep');
+  if (btnSearchCep) {
+    btnSearchCep.addEventListener('click', () => {
+      const c = (document.getElementById('input-cep')?.value || '').replace(/\D/g, '');
+      if (c.length === 8) lookupCep(c);
+    });
+  }
+
+  // Troca de método de envio
+  const shippingRadios = document.querySelectorAll('input[name="shipping_option"]');
+  shippingRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.querySelectorAll('.shipping-option-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      this.closest('.shipping-option-item')?.classList.add('selected');
+      renderSummary();
+    });
+  });
+
+  // Pagamento 100% Exclusivo via PIX
+  currentPaymentMethod = 'pix';
+
+  // Copiar PIX
+  const btnCopyPix = document.getElementById('btn-copy-pix');
+  const pixInput = document.getElementById('pix-copia-cola');
+  if (btnCopyPix && pixInput) {
+    btnCopyPix.addEventListener('click', () => {
+      pixInput.select();
+      navigator.clipboard.writeText(pixInput.value).then(() => {
+        btnCopyPix.textContent = 'Copiado!';
+        setTimeout(() => {
+          btnCopyPix.textContent = 'Copiar Código PIX';
+        }, 2500);
+      });
+    });
+  }
+
+  // Finalizar Pedido
+  const btnFinalize = document.getElementById('btn-finalize-order');
+  const modalSuccess = document.getElementById('modal-success');
+  const orderNumberEl = document.getElementById('success-order-number');
+
+  if (btnFinalize) {
+    btnFinalize.addEventListener('click', () => {
+      const randomOrder = 'ULT-' + Math.floor(100000 + Math.random() * 900000);
+      if (orderNumberEl) orderNumberEl.textContent = '#' + randomOrder;
+
+      localStorage.removeItem('monja_ecommerce_cart');
+
+      goToStep(4);
+      if (modalSuccess) modalSuccess.style.display = 'flex';
+    });
+  }
+
+  // =========================================================================
+  // CARREGAMENTO INICIAL
+  // =========================================================================
+  renderAll();
+
+  // Verifica se o usuário já havia digitado CEP anteriormente
+  try {
+    const savedCep = localStorage.getItem('monja_user_cep');
+    if (savedCep && cartCepInput) {
+      let formatted = savedCep.replace(/\D/g, '').slice(0, 8);
+      if (formatted.length > 5) formatted = formatted.slice(0, 5) + '-' + formatted.slice(5);
+      cartCepInput.value = formatted;
+      calculateCartCep(savedCep);
+    }
+  } catch(e) {}
+});

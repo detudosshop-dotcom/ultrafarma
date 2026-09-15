@@ -1,0 +1,966 @@
+/* ==========================================================================
+   ESTILOS ULTRA-FLUIDOS DO CHECKOUT ULTRAFARMA (100% RESPONSIVO - ZERO OVERFLOW)
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f4f6f9;
+  color: #1e293b;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* 1. Header Seguro */
+.checkout-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 0;
+  width: 100%;
+}
+.checkout-header-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.checkout-logo img {
+  height: 32px;
+  background: #003399;
+  padding: 4px 10px;
+  border-radius: 6px;
+  max-width: 130px;
+  object-fit: contain;
+  display: block;
+}
+.checkout-secure-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #009640;
+  font-weight: 700;
+  font-size: 11px;
+}
+.checkout-secure-badge svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* 2. Stepper de 4 Passos */
+.checkout-stepper-container {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 8px;
+  margin-bottom: 14px;
+  width: 100%;
+}
+.checkout-stepper {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px;
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.step-item.active {
+  color: #003399;
+}
+.step-item.completed {
+  color: #009640;
+}
+.step-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+.step-item.active .step-circle {
+  border-color: #003399;
+  background: #003399;
+  color: #ffffff;
+}
+.step-item.completed .step-circle {
+  border-color: #009640;
+  background: #009640;
+  color: #ffffff;
+}
+.step-line {
+  flex: 1 1 0%;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 4px;
+  min-width: 4px;
+}
+.step-line.completed {
+  background: #009640;
+}
+
+@media (max-width: 480px) {
+  .step-item .step-label {
+    display: none;
+  }
+  .step-item.active .step-label {
+    display: inline;
+    font-weight: 700;
+    font-size: 11px;
+  }
+}
+
+/* 3. Grid Principal */
+.checkout-main-container {
+  max-width: 1140px;
+  margin: 0 auto 30px;
+  padding: 0 10px;
+  width: 100%;
+}
+.checkout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .checkout-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.checkout-steps-column, .checkout-summary-column {
+  min-width: 0;
+  width: 100%;
+}
+
+/* 4. Cartões e Passos */
+.checkout-step-pane {
+  display: none;
+}
+.checkout-step-pane.active {
+  display: block;
+}
+
+.checkout-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  width: 100%;
+}
+.card-inner-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #003399;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.step-mini-num {
+  background: #003399;
+  color: #fff;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* Barra de Progresso de Frete Grátis */
+.frete-progress-card {
+  background: #f0f7ff;
+  border: 1px solid #c8e0fe;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.frete-progress-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #003399;
+  margin-bottom: 6px;
+}
+.frete-progress-bar-bg {
+  width: 100%;
+  height: 7px;
+  background: #dbeafe;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.frete-progress-bar-fill {
+  height: 100%;
+  background: #009640;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Itens da Cesta */
+.cart-item-row-checkout {
+  display: flex;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: flex-start;
+}
+.cart-item-row-checkout img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.cart-item-detail {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+.cart-item-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+}
+.cart-item-seller {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 2px;
+}
+.cart-item-qty-and-price {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.cart-inline-counter {
+  display: flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  height: 30px;
+  background: #fff;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.cart-inline-counter button {
+  width: 26px;
+  height: 100%;
+  background: #f8fafc;
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cart-inline-counter button:active {
+  background: #e2e8f0;
+}
+.cart-inline-counter input {
+  width: 30px;
+  height: 100%;
+  border: none;
+  text-align: center;
+  font-weight: 800;
+  font-size: 12px;
+  background: transparent;
+  outline: none;
+}
+.cart-item-price-unit {
+  font-size: 11px;
+  color: #64748b;
+}
+.cart-item-price-total {
+  font-size: 15px;
+  font-weight: 800;
+  color: #003399;
+}
+.btn-remove-item {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  opacity: 0.8;
+}
+
+/* Cupom e Frete na Cesta */
+.cart-addons-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+}
+.cart-addon-box {
+  width: 100%;
+}
+.cart-addon-box label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 4px;
+}
+.input-with-btn {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+.input-with-btn input {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: auto;
+  height: 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+  outline: none;
+}
+.input-with-btn input:focus {
+  border-color: #003399;
+}
+.btn-secondary {
+  flex: 0 0 auto;
+  background: #003399;
+  color: #fff;
+  border: none;
+  padding: 0 14px;
+  height: 38px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Botões de Rodapé */
+.step-actions-footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+@media (min-width: 601px) {
+  .step-actions-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+.btn-continue-shopping-link {
+  color: #003399;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  text-align: center;
+  width: 100%;
+}
+@media (min-width: 601px) {
+  .btn-continue-shopping-link {
+    width: auto;
+  }
+}
+.btn-step-prev {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+  width: 100%;
+  text-align: center;
+}
+@media (min-width: 601px) {
+  .btn-step-prev {
+    width: auto;
+  }
+}
+.btn-step-next, .btn-finalize {
+  background: #009640;
+  color: #ffffff;
+  border: none;
+  padding: 13px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 3px 8px rgba(0,150,64,0.22);
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  text-align: center;
+}
+.btn-step-next:hover, .btn-finalize:hover {
+  background: #007a33;
+}
+@media (min-width: 601px) {
+  .btn-step-next, .btn-finalize {
+    width: auto;
+  }
+}
+
+/* Formulários do Passo 2 (Entrega) */
+.form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.form-group {
+  flex: 1 1 0%;
+  min-width: 110px;
+  margin-bottom: 4px;
+}
+.form-group.col-3 { flex: 3 1 0%; }
+.form-group.col-4 { flex: 4 1 0%; }
+.form-group.col-8 { flex: 8 1 0%; }
+.form-group.col-9 { flex: 9 1 0%; }
+@media (max-width: 540px) {
+  .form-group.col-3, .form-group.col-4, .form-group.col-8, .form-group.col-9 {
+    flex: 1 1 100%;
+  }
+}
+.form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 3px;
+}
+.form-group input, .form-group select {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+  outline: none;
+  background: #ffffff;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: #003399;
+}
+
+/* Opções de Envio */
+.shipping-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.shipping-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s;
+}
+.shipping-option-item:hover, .shipping-option-item.selected {
+  border-color: #003399;
+  background: #f8fafc;
+}
+.shipping-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.shipping-radio-label input {
+  accent-color: #003399;
+  width: 15px;
+  height: 15px;
+}
+.shipping-price {
+  font-size: 12px;
+  font-weight: 800;
+  color: #009640;
+}
+
+/* 5. Abas de Pagamento (Passo 3) */
+.payment-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.payment-tab-btn {
+  flex: 1 1 0%;
+  padding: 8px 6px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  font-weight: 700;
+  font-size: 11px;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: all 0.2s;
+}
+.payment-tab-btn.active {
+  border-color: #003399;
+  color: #003399;
+  background: #f0f7ff;
+}
+.tab-tag {
+  font-size: 9px;
+  background: #009640;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-weight: 800;
+}
+.payment-tab-content {
+  display: none;
+}
+.payment-tab-content.active {
+  display: block;
+}
+
+/* Conteúdo PIX */
+.pix-content-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+.pix-badge-discount {
+  display: inline-block;
+  background: #009640;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+.pix-qr-container {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+.pix-copy-box {
+  display: flex;
+  gap: 6px;
+  max-width: 100%;
+  margin: 0 auto;
+  width: 100%;
+}
+.pix-copy-box input {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: auto;
+  height: 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 11px;
+  background: #fff;
+}
+.btn-copy-pix {
+  flex: 0 0 auto;
+  background: #009640;
+  color: #fff;
+  border: none;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 6. Resumo do Pedido Lateral */
+.order-summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  position: sticky;
+  top: 14px;
+}
+.order-summary-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #003399;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.order-summary-items {
+  margin-bottom: 10px;
+}
+.order-summary-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.order-summary-item img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.order-summary-item-info {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+.order-summary-item-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1e293b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.25;
+}
+.order-summary-item-meta {
+  font-size: 10px;
+  color: #64748b;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+.summary-rows {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 8px;
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 5px;
+}
+.summary-row.discount {
+  color: #009640;
+}
+.summary-row.total {
+  font-size: 17px;
+  font-weight: 900;
+  color: #003399;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 8px;
+  margin-top: 6px;
+}
+.order-guarantee-text {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+  text-align: center;
+  font-size: 10px;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+/* 7. Modal de Sucesso (Passo 4) */
+.modal-success-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(3px);
+  z-index: 999999;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+.modal-success-box {
+  background: #ffffff;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  padding: 24px 18px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalPopIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+.success-check-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+.success-check-icon svg {
+  width: 32px !important;
+  height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  fill: #009640 !important;
+  display: block;
+}
+.modal-success-box h2 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #003399;
+  margin-bottom: 6px;
+}
+.modal-success-box p {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+.order-code-badge {
+  background: #f0f7ff;
+  border: 1px dashed #003399;
+  color: #003399;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 8px;
+  margin: 14px 0;
+  display: inline-block;
+  font-size: 14px;
+}
+.btn-back-home {
+  display: inline-block;
+  background: #003399;
+  color: #ffffff !important;
+  text-decoration: none;
+  font-weight: 800;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+
+/* Prévia de Frete na Cesta */
+.cep-preview-result-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  font-size: 12px;
+  animation: fadeIn 0.25s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.cep-preview-location {
+  font-size: 11px;
+  color: #166534;
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cep-preview-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cep-preview-option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #334155;
+  font-size: 11px;
+}
+.cep-preview-option-row strong {
+  color: #1e293b;
+}
+.cep-preview-option-row strong.free {
+  color: #009640;
+}
+.coupon-success-box {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+.coupon-error-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+/* ==========================================================================
+   TAGS DE DOSAGEM E FRETE REFRIGERADO NO CHECKOUT
+   ========================================================================== */
+.cart-item-dosage-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  margin-top: 4px;
+}
+.cart-item-dosage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.cold-shipping-badge-checkout {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+
+/* ==========================================================================
+   PAGAMENTO EXCLUSIVO PIX & ALTA FLUIDEZ
+   ========================================================================== */
+.pix-exclusive-container {
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pix-exclusive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pix-tag-instant {
+  font-size: 11px;
+  font-weight: 800;
+  color: #166534;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pix-tag-off {
+  font-size: 11px;
+  font-weight: 800;
+  background: #009640;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+.pix-secure-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #475569;
+  margin-top: 12px;
+  line-height: 1.4;
+}
+
+/* Otimizações de Fluidez Mobile */
+button, input, select, .shipping-option-item {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-step-next, .btn-finalize, .btn-copy-pix {
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.12s ease;
+  will-change: transform;
+}
+.btn-step-next:active, .btn-finalize:active, .btn-copy-pix:active {
+  transform: scale(0.97);
+}
