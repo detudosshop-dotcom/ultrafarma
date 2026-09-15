@@ -141,8 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function updateShippingDates() {
     const normalEl = document.getElementById('shipping-date-normal');
     const expressEl = document.getElementById('shipping-date-express');
-    if (normalEl) normalEl.innerHTML = '📅 ' + getDeliveryDateRange(3, 4);
-    if (expressEl) expressEl.innerHTML = '📅 ' + getDeliveryDateRange(2, 3);
+    if (normalEl) normalEl.innerHTML = '📅 ' + getDeliveryDateRange(7, 10);
+    if (expressEl) expressEl.innerHTML = '📅 ' + getDeliveryDateRange(4, 7);
   }
 
   // Renderiza Cesta do Passo 1
@@ -414,8 +414,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const totals = calculateTotals();
         const normalCostText = totals.isFreeShipping ? '<strong class="free">GRÁTIS</strong>' : '<strong>R$ 14,90</strong>';
 
-        const dateNormal = getDeliveryDateRange(3, 4);
-        const dateExpress = getDeliveryDateRange(2, 3);
+        const dateNormal = getDeliveryDateRange(7, 10);
+        const dateExpress = getDeliveryDateRange(4, 7);
 
         if (cartCepFeedback) {
           cartCepFeedback.innerHTML = `
@@ -426,14 +426,14 @@ document.addEventListener('DOMContentLoaded', function() {
               <div class="cep-preview-options">
                 <div class="cep-preview-option-row">
                   <div>
-                    <span>🚚 Sedex Especial Refrigerado (3 a 4 dias úteis):</span>
+                    <span>🚚 Sedex Especial Refrigerado (7 a 10 dias úteis):</span>
                     <div style="font-size:11px;color:#009640;font-weight:600;margin-top:2px;">📅 ${dateNormal}</div>
                   </div>
                   ${normalCostText}
                 </div>
                 <div class="cep-preview-option-row">
                   <div>
-                    <span>⚡ Entrega Expressa no Gelo (2 a 3 dias úteis):</span>
+                    <span>⚡ Entrega Expressa no Gelo (4 a 7 dias úteis):</span>
                     <div style="font-size:11px;color:#003399;font-weight:600;margin-top:2px;">📅 ${dateExpress}</div>
                   </div>
                   <strong>R$ 14,90</strong>
@@ -718,6 +718,29 @@ document.addEventListener('DOMContentLoaded', function() {
       goToStep(4);
       if (modalSuccess) modalSuccess.style.display = 'flex';
     });
+  }
+
+  // Orderbump: Agulhas BD — ajusta o total ao marcar/desmarcar
+  const orderbumpCheck = document.getElementById('orderbump-agulhas');
+  if (orderbumpCheck) {
+    orderbumpCheck.addEventListener('change', function() {
+      renderSummary();
+    });
+  }
+
+  // Override renderSummary para incluir orderbump no total
+  const _origRenderSummary = renderSummary;
+  function renderSummaryWithOrderbump() {
+    _origRenderSummary();
+    const cb = document.getElementById('orderbump-agulhas');
+    if (cb && cb.checked) {
+      const totalEl = document.getElementById('summary-total');
+      if (totalEl) {
+        const currentText = totalEl.textContent.replace(/[^\d,]/g, '').replace(',', '.');
+        const currentVal = parseFloat(currentText) || 0;
+        totalEl.textContent = formatMoney(currentVal + 49.90);
+      }
+    }
   }
 
   // =========================================================================

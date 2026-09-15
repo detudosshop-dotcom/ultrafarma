@@ -488,8 +488,8 @@ button, a, input, select, .dosage-pill-btn, .thumb-item, .progressive-card {
 
 .stock-and-seller {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 10px;
   font-size: 12px;
 }

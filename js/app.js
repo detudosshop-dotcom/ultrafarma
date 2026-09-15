@@ -12,9 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
     'tirz-2-5': '/images/box-2-5.jpg',
     'tirz-5-0': '/images/box-5-0.jpg',
     'tirz-7-5': '/images/box-7-5.jpg',
-    'tirz-10-0': '/images/tirzepatida-all.png',
-    'tirz-12-5': '/images/tirzepatida-all.png',
-    'tirz-15-0': '/images/tirzepatida-all.png'
+    'tirz-10-0': '/images/box-10-0.jpg',
+    'tirz-12-5': '/images/box-12-5.jpg',
+    'tirz-15-0': '/images/box-15-0.jpg'
   };
 
   // Variável de estado da dosagem selecionada (padrão 2,5 mg)
@@ -83,8 +83,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const pricePixEl = document.getElementById('pdp-price-pix');
     const unitPromoNoteEl = document.getElementById('pdp-unit-promo-note');
 
-    if (priceDeEl) priceDeEl.textContent = 'De ' + formatMoney(variant.priceOriginal);
-    if (priceCashbackEl) priceCashbackEl.textContent = '*Cashback ' + formatMoney(variant.cashbackValue);
+    const discPct = variant.discountPercent || 80;
+    const savings = variant.priceOriginal - variant.pricePromo;
+
+    if (priceDeEl) priceDeEl.innerHTML = 'De <s>' + formatMoney(variant.priceOriginal) + '</s> <span style="background:#ef4444;color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:4px;margin-left:4px;">' + discPct + '% OFF</span>';
+    if (priceCashbackEl) priceCashbackEl.innerHTML = '✅ Você economiza: <strong style="color:#009640;">' + formatMoney(savings) + '</strong>';
     if (pricePorEl) pricePorEl.textContent = formatMoney(variant.pricePromo);
     if (priceInstallmentsEl) {
       priceInstallmentsEl.innerHTML = 'em até <strong>' + variant.installmentCount + 'x de ' + formatMoney(variant.installmentValue) + '</strong> sem juros';
@@ -279,8 +282,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function renderFreteResult() {
     if (!freteOutput) return;
-    const dateGratis = getDeliveryDateRange(3, 4);
-    const dateExpresso = getDeliveryDateRange(2, 3);
+    const dateGratis = getDeliveryDateRange(7, 10);
+    const dateExpresso = getDeliveryDateRange(4, 7);
     freteOutput.innerHTML = `
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:12px;margin-top:10px;font-size:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;color:#166534;font-weight:700;">
@@ -288,16 +291,16 @@ document.addEventListener('DOMContentLoaded', function() {
           <span style="color:#009640;font-size:13px;font-weight:800;">GRÁTIS</span>
         </div>
         <div style="font-size:11px;color:#15803d;margin-top:4px;font-weight:600;">
-          📅 Prazo: <strong>3 a 4 dias úteis</strong> • ${dateGratis}
+          📅 Prazo: <strong>7 a 10 dias úteis</strong> • ${dateGratis}
         </div>
         <div style="font-size:11px;color:#4b5563;margin-top:2px;">Embalagem isotérmica especial com gel biológico lacrado e controle de temperatura.</div>
 
         <div style="border-top:1px dashed #cbd5e1;margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-weight:700;color:#1e293b;">⚡ Entrega Expressa Refrigerada (2 a 3 dias úteis):</span>
+          <span style="font-weight:700;color:#1e293b;">⚡ Entrega Expressa Refrigerada (4 a 7 dias úteis):</span>
           <span style="font-weight:800;color:#003399;">R$ 14,90</span>
         </div>
         <div style="font-size:11px;color:#003399;margin-top:2px;font-weight:600;">
-          📅 Prazo: <strong>2 a 3 dias úteis</strong> • ${dateExpresso}
+          📅 Prazo: <strong>4 a 7 dias úteis</strong> • ${dateExpresso}
         </div>
       </div>
     `;
