@@ -1505,3 +1505,8 @@ button, a, input, select, .dosage-pill-btn, .thumb-item, .progressive-card {
 .dosage-pill-btn.active .dosage-badge-selected {
   display: flex;
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

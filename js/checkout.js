@@ -709,15 +709,151 @@ document.addEventListener('DOMContentLoaded', function() {
   const orderNumberEl = document.getElementById('success-order-number');
 
   if (btnFinalize) {
-    btnFinalize.addEventListener('click', () => {
-      const randomOrder = 'ULT-' + Math.floor(100000 + Math.random() * 900000);
-      if (orderNumberEl) orderNumberEl.textContent = '#' + randomOrder;
+    btnFinalize.addEventListener('click', async () => {
+      // Coleta dados do formulário de entrega
+      const nameEl     = document.getElementById('delivery-name')     || document.getElementById('checkout-name');
+      const emailEl    = document.getElementById('delivery-email')    || document.getElementById('checkout-email');
+      const phoneEl    = document.getElementById('delivery-phone')    || document.getElementById('checkout-phone');
+      const cpfEl      = document.getElementById('delivery-cpf')      || document.getElementById('checkout-cpf');
+      const cepEl      = document.getElementById('delivery-cep')      || document.getElementById('checkout-cep');
+      const streetEl   = document.getElementById('delivery-street')   || document.getElementById('checkout-street');
+      const numberEl   = document.getElementById('delivery-number')   || document.getElementById('checkout-number');
+      const neighEl    = document.getElementById('delivery-neighborhood') || document.getElementById('checkout-neighborhood');
+      const cityEl     = document.getElementById('delivery-city')     || document.getElementById('checkout-city');
+      const stateEl    = document.getElementById('delivery-state')    || document.getElementById('checkout-state');
 
-      localStorage.removeItem('monja_ecommerce_cart');
+      const customerName  = nameEl  ? nameEl.value.trim()  : 'Cliente Ultrafarma';
+      const customerEmail = emailEl ? emailEl.value.trim() : 'cliente@email.com';
+      const customerPhone = phoneEl ? phoneEl.value.replace(/\D/g, '') : '11999990000';
+      const customerCpf   = cpfEl   ? cpfEl.value.replace(/\D/g, '')   : '00000000000';
+      const customerCep   = cepEl   ? cepEl.value.replace(/\D/g, '')   : '';
 
-      goToStep(4);
-      if (modalSuccess) modalSuccess.style.display = 'flex';
+      const address = {
+        street:       streetEl  ? streetEl.value.trim()  : '',
+        number:       numberEl  ? numberEl.value.trim()  : '',
+        neighborhood: neighEl   ? neighEl.value.trim()   : '',
+        city:         cityEl    ? cityEl.value.trim()    : '',
+        state:        stateEl   ? stateEl.value.trim()   : '',
+        zipcode:      customerCep
+      };
+
+      // Calcula valor total em centavos
+      const totals = calculateTotals();
+      let totalValue = totals.total;
+
+      // Adiciona orderbump se marcado
+      const orderbumpCb = document.getElementById('orderbump-agulhas');
+      if (orderbumpCb && orderbumpCb.checked) {
+        totalValue += 49.90;
+      }
+
+      const amountCents = Math.round(totalValue * 100);
+      const reference = 'ULT-' + Date.now();
+
+      // Mostra loading
+      const pixLoading = document.getElementById('pix-loading');
+      const pixContent = document.getElementById('pix-content-real');
+      const pixCodeInput = document.getElementById('pix-copia-cola');
+      const pixQrWrapper = document.getElementById('pix-qr-wrapper');
+
+      if (pixLoading) pixLoading.style.display = 'block';
+      if (pixContent) pixContent.style.display = 'none';
+      if (btnFinalize) {
+        btnFinalize.disabled = true;
+        btnFinalize.textContent = 'Gerando PIX...';
+      }
+
+      // Move para o passo 3 (PIX) antes de chamar a API
+      goToStep(3);
+
+      try {
+        const resp = await fetch('/api/pix', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: amountCents,
+            description: 'Tirzepatida T.G. - Ultrafarma',
+            reference: reference,
+            customer: {
+              name: customerName,
+              email: customerEmail,
+              phone: customerPhone,
+              document: customerCpf
+            },
+            address: address
+          })
+        });
+
+        const data = await resp.json();
+
+        if (pixLoading) pixLoading.style.display = 'none';
+        if (pixContent) pixContent.style.display = 'block';
+
+        if (data.success && data.qr_code_text) {
+          // Atualiza código copia-e-cola
+          if (pixCodeInput) pixCodeInput.value = data.qr_code_text;
+
+          // Se vier QR code em base64, exibe como imagem real
+          if (data.qr_code_image && pixQrWrapper) {
+            pixQrWrapper.innerHTML = '<img src="' + data.qr_code_image + '" alt="QR Code PIX" style="width:180px;height:180px;border-radius:8px;">';
+          }
+
+          // Salva transaction_id para polling
+          try { localStorage.setItem('monja_pix_txid', data.transaction_id); } catch(e) {}
+
+          // Polling de pagamento a cada 5 segundos
+          startPixPolling(data.transaction_id, reference);
+
+        } else {
+          // Erro da API — mostra mensagem amigável
+          if (pixQrWrapper) {
+            pixQrWrapper.innerHTML = '<div style="color:#ef4444;font-size:12px;padding:16px;text-align:center;">⚠️ Erro ao gerar PIX.<br>Tente novamente ou entre em contato.</div>';
+          }
+          if (pixCodeInput) pixCodeInput.value = '';
+          console.error('FlevoPay error:', data);
+        }
+
+      } catch (err) {
+        console.error('PIX API fetch error:', err);
+        if (pixLoading) pixLoading.style.display = 'none';
+        if (pixContent) pixContent.style.display = 'block';
+        if (pixQrWrapper) {
+          pixQrWrapper.innerHTML = '<div style="color:#ef4444;font-size:12px;padding:16px;text-align:center;">⚠️ Sem conexão.<br>Verifique sua internet e tente novamente.</div>';
+        }
+      } finally {
+        if (btnFinalize) {
+          btnFinalize.disabled = false;
+          btnFinalize.textContent = 'Finalizar Pedido';
+        }
+      }
     });
+  }
+
+  // Polling: verifica se o PIX foi pago a cada 5s por até 10 min
+  function startPixPolling(transactionId, reference) {
+    if (!transactionId) return;
+    let attempts = 0;
+    const maxAttempts = 120; // 10 minutos (120 x 5s)
+
+    const interval = setInterval(async () => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        clearInterval(interval);
+        return;
+      }
+      try {
+        const resp = await fetch('/api/pix-status?id=' + encodeURIComponent(transactionId));
+        const data = await resp.json();
+        if (data.status === 'approved') {
+          clearInterval(interval);
+          localStorage.removeItem('monja_ecommerce_cart');
+          localStorage.removeItem('monja_pix_txid');
+          if (orderNumberEl) orderNumberEl.textContent = '#' + reference;
+          goToStep(4);
+          if (modalSuccess) modalSuccess.style.display = 'flex';
+        }
+      } catch (e) { /* continua tentando */ }
+    }, 5000);
   }
 
   // Orderbump: Agulhas BD — ajusta o total ao marcar/desmarcar
