@@ -895,18 +895,41 @@ document.addEventListener('DOMContentLoaded', function() {
   // Pagamento 100% Exclusivo via PIX
   currentPaymentMethod = 'pix';
 
-  // Copiar PIX
+  // Copiar PIX — dispara evento UTMify waiting_payment no 1º clique
   const btnCopyPix = document.getElementById('btn-copy-pix');
   const pixInput = document.getElementById('pix-copia-cola');
+  let utmifyPixNotified = false; // garante que envia apenas uma vez
+
   if (btnCopyPix && pixInput) {
     btnCopyPix.addEventListener('click', () => {
       pixInput.select();
       navigator.clipboard.writeText(pixInput.value).then(() => {
         btnCopyPix.textContent = 'Copiado!';
-        setTimeout(() => {
-          btnCopyPix.textContent = 'Copiar Código PIX';
-        }, 2500);
+        setTimeout(() => { btnCopyPix.textContent = 'Copiar Código PIX'; }, 2500);
       });
+
+      // Notifica UTMify (apenas no 1º clique de cópia)
+      if (!utmifyPixNotified) {
+        utmifyPixNotified = true;
+        try {
+          let customer = {}, utms = {};
+          try { customer = JSON.parse(localStorage.getItem('monja_pix_customer') || '{}'); } catch(e) {}
+          try { utms    = JSON.parse(localStorage.getItem('monja_pix_utms')     || '{}'); } catch(e) {}
+          const orderId    = localStorage.getItem('monja_pix_ref')        || '';
+          const amountCents= localStorage.getItem('monja_pix_amount')     || 0;
+          const createdAt  = localStorage.getItem('monja_pix_created_at') || '';
+
+          fetch('/api/utmify-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId, status: 'waiting_payment',
+              customer, amountCents, createdAt, utms,
+              description: 'Tirzepatida T.G. Solução Injetável'
+            })
+          }).catch(() => {}); // silencioso, não bloqueia o usuário
+        } catch(e) {}
+      }
     });
   }
 
@@ -933,38 +956,37 @@ document.addEventListener('DOMContentLoaded', function() {
   function startPixPolling(transactionId, reference) {
     if (!transactionId) return;
     let attempts = 0;
-    const maxAttempts = 120; // 10 minutos (120 x 5s)
-
-    // Recupera dados salvos para o UTMify paid event
-    let customer = {};
-    let utms = {};
-    try { customer = JSON.parse(localStorage.getItem('monja_pix_customer') || '{}'); } catch(e) {}
-    try { utms = JSON.parse(localStorage.getItem('monja_pix_utms') || '{}'); } catch(e) {}
-    const amount     = localStorage.getItem('monja_pix_amount')     || 0;
-    const created_at = localStorage.getItem('monja_pix_created_at') || '';
+    const maxAttempts = 120; // 10 minutos
 
     const interval = setInterval(async () => {
       attempts++;
       if (attempts > maxAttempts) { clearInterval(interval); return; }
       try {
-        // Monta query com dados do pedido para o pix-status.js notificar UTMify quando pago
-        const params = new URLSearchParams({
-          id:           transactionId,
-          order_id:     reference,
-          amount:       amount,
-          created_at:   created_at,
-          customer_name: customer.name    || '',
-          customer_email: customer.email  || '',
-          customer_doc: customer.document || '',
-          utms: encodeURIComponent(JSON.stringify(utms))
-        });
-
-        const resp = await fetch('/api/pix-status?' + params.toString());
+        const resp = await fetch('/api/pix-status?id=' + encodeURIComponent(transactionId));
         const data = await resp.json();
 
         if (data.status === 'approved') {
           clearInterval(interval);
-          // Limpa dados do localStorage
+
+          // Notifica UTMify: PIX pago
+          try {
+            let customer = {}, utms = {};
+            try { customer = JSON.parse(localStorage.getItem('monja_pix_customer') || '{}'); } catch(e) {}
+            try { utms    = JSON.parse(localStorage.getItem('monja_pix_utms')     || '{}'); } catch(e) {}
+            const amountCents = localStorage.getItem('monja_pix_amount')     || 0;
+            const createdAt   = localStorage.getItem('monja_pix_created_at') || '';
+            fetch('/api/utmify-event', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: reference, status: 'paid',
+                customer, amountCents, createdAt, utms,
+                description: 'Tirzepatida T.G. Solução Injetável'
+              })
+            }).catch(() => {});
+          } catch(e) {}
+
+          // Limpa localStorage e avança para confirmação
           ['monja_ecommerce_cart','monja_pix_txid','monja_pix_ref',
            'monja_pix_created_at','monja_pix_amount','monja_pix_customer','monja_pix_utms']
             .forEach(k => localStorage.removeItem(k));
