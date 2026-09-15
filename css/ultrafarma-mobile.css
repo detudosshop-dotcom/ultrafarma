@@ -30,8 +30,11 @@ html, body {
   background-color: #ffffff;
   line-height: 1.45;
   font-size: 14px;
-  overflow-x: hidden;
   width: 100%;
+  max-width: 100vw;
+}
+html {
+  overflow-x: hidden;
 }
 
 img {
@@ -407,21 +410,26 @@ button {
 
 .gallery-thumbnails-row {
   display: flex;
-  gap: 10px;
-  justify-content: center;
+  gap: 8px;
+  justify-content: flex-start;
   align-items: center;
   margin-top: 8px;
+  margin-left: -12px;
+  margin-right: -12px;
   overflow-x: auto;
-  padding: 4px 10px;
+  overflow-y: visible;
+  padding: 4px 14px 8px 14px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
 }
 .gallery-thumbnails-row::-webkit-scrollbar {
   display: none;
 }
 .thumb-item {
-  width: 62px;
-  height: 68px;
+  width: 56px;
+  height: 62px;
+  min-width: 56px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   padding: 3px;
@@ -434,6 +442,7 @@ button {
   justify-content: space-between;
   flex-shrink: 0;
   touch-action: manipulation;
+  scroll-snap-align: start;
 }
 .thumb-item:active {
   transform: scale(0.94);
@@ -445,11 +454,11 @@ button {
 }
 .thumb-item img {
   width: 100%;
-  height: 44px;
+  height: 40px;
   object-fit: contain;
 }
 .thumb-caption {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: #64748b;
   text-align: center;
