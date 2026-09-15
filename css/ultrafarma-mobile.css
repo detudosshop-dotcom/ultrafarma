@@ -17,21 +17,12 @@
   --uf-border: #e2e8f0;
 }
 
-* {
-  /* Previne zoom de pinça no iOS/Android */
-  touch-action: pan-x pan-y;
-}
-
-/* iOS auto-zooma inputs com font-size < 16px — forçamos 16px mínimo */
-input, select, textarea {
-  font-size: 16px !important;
-}
-
-
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-x pan-y; /* previne pinch-zoom iOS/Android */
 }
 
 html, body {
@@ -424,14 +415,15 @@ button {
   justify-content: flex-start;
   align-items: center;
   margin-top: 8px;
-  margin-left: -12px;
-  margin-right: -12px;
   overflow-x: auto;
   overflow-y: visible;
-  padding: 4px 14px 8px 14px;
+  padding: 4px 4px 8px 4px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain; /* impede que o scroll vaze para a página */
+  max-width: 100%;
+  width: 100%;
 }
 .gallery-thumbnails-row::-webkit-scrollbar {
   display: none;

@@ -58,7 +58,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const tVid = t.getAttribute('data-variant-id');
       if (tVid === variantId) {
         t.classList.add('active');
-        t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        // Scroll apenas o container do carrossel, não a página toda
+        const container = t.closest('.gallery-thumbnails-row') || t.parentElement;
+        if (container) {
+          const thumbLeft = t.offsetLeft;
+          const containerWidth = container.offsetWidth;
+          const thumbWidth = t.offsetWidth;
+          container.scrollTo({
+            left: thumbLeft - (containerWidth / 2) + (thumbWidth / 2),
+            behavior: 'smooth'
+          });
+        }
       } else {
         t.classList.remove('active');
       }
