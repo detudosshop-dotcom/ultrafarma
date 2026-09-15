@@ -787,38 +787,43 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.success && data.qr_code_text) {
         if (pixCodeInput) pixCodeInput.value = data.qr_code_text;
 
-        // Gera e exibe o QR Code no wrapper usando qrcode.js (carregado via CDN)
         if (pixQrWrapper) {
-          function renderQR() {
-            pixQrWrapper.innerHTML = ''; // limpa SVG placeholder
-            const canvas = document.createElement('canvas');
-            canvas.style.cssText = 'display:block;margin:0 auto;border-radius:8px;';
-            pixQrWrapper.appendChild(canvas);
-            QRCode.toCanvas(canvas, data.qr_code_text, {
-              errorCorrectionLevel: 'M',
-              width: 220,
-              margin: 2,
-              color: { dark: '#000000', light: '#ffffff' }
-            }, function(err) {
-              if (err) {
-                pixQrWrapper.innerHTML = '<div style="color:#64748b;text-align:center;padding:12px;font-size:12px;">Use o código Copia e Cola abaixo.</div>';
-              }
-            });
-          }
+          pixQrWrapper.innerHTML = ''; // limpa SVG placeholder
 
-          if (typeof QRCode !== 'undefined') {
-            renderQR();
-          } else {
-            // qrcode.js ainda não carregou — aguarda até 3s
-            let waited = 0;
-            const waitLib = setInterval(() => {
-              waited += 100;
-              if (typeof QRCode !== 'undefined') { clearInterval(waitLib); renderQR(); }
-              else if (waited >= 3000) {
-                clearInterval(waitLib);
+          if (data.qr_code_image) {
+            // ✅ Servidor gerou o QR em base64 — exibe direto como <img>
+            const img = document.createElement('img');
+            img.src    = data.qr_code_image;
+            img.alt    = 'QR Code PIX';
+            img.style.cssText = 'width:220px;height:220px;border-radius:8px;display:block;margin:0 auto;';
+            pixQrWrapper.appendChild(img);
+
+          } else if (data.qr_code_text) {
+            // ⚙️ Fallback: gera QR no browser com qrcodejs
+            function tryRenderQR() {
+              if (typeof QRCode !== 'undefined') {
+                new QRCode(pixQrWrapper, {
+                  text:         data.qr_code_text,
+                  width:        220,
+                  height:       220,
+                  colorDark:    '#000000',
+                  colorLight:   '#ffffff',
+                  correctLevel: QRCode.CorrectLevel.M
+                });
+              } else {
                 pixQrWrapper.innerHTML = '<div style="color:#64748b;text-align:center;padding:12px;font-size:12px;">Use o código Copia e Cola abaixo.</div>';
               }
-            }, 100);
+            }
+            if (typeof QRCode !== 'undefined') {
+              tryRenderQR();
+            } else {
+              let w = 0;
+              const t = setInterval(() => {
+                w += 100;
+                if (typeof QRCode !== 'undefined') { clearInterval(t); tryRenderQR(); }
+                else if (w >= 3000) { clearInterval(t); tryRenderQR(); }
+              }, 100);
+            }
           }
         }
 

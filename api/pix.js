@@ -1,6 +1,7 @@
-// api/pix.js — Vercel Serverless Function
-// Proxy seguro para FlevoPay
-// QR Code é gerado no FRONTEND com qrcode.js (sem dependência de pacote no servidor)
+// api/pix.js — Vercel Serverless (CommonJS)
+// Usa module.exports em vez de export default para poder usar require('qrcode')
+
+const QRCode = require('qrcode');
 
 const FLEVOPAY_API = 'https://app.flevopay.com.br/api/v1/transaction';
 const FLEVOPAY_KEY = 'flevopay_sk_4d2f2349cd060b2eb9d2346923037759f1c3b617645417359fc96c8a80ea2429';
@@ -9,7 +10,7 @@ function nowUTC() {
   return new Date().toISOString().replace('T', ' ').substring(0, 19);
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -45,24 +46,36 @@ export default async function handler(req, res) {
     const data = await fResponse.json();
 
     if (!fResponse.ok) {
-      return res.status(fResponse.status).json({
-        error: data.message || 'Erro FlevoPay',
-        details: data
-      });
+      return res.status(fResponse.status).json({ error: data.message || 'Erro FlevoPay', details: data });
     }
 
-    // Retorna apenas o texto EMV — o QR Code será renderizado no frontend com qrcode.js
+    const qrText = data.qr_code || '';
+
+    // Gera QR Code em base64 no servidor (CommonJS — sem conflito ESM)
+    let qrImageDataUrl = '';
+    if (qrText) {
+      qrImageDataUrl = await QRCode.toDataURL(qrText, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        width: 300,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' }
+      });
+      // Resultado: "data:image/png;base64,iVBORw0KGgo..."
+    }
+
     return res.status(200).json({
       success:        true,
       transaction_id: data.transaction_id,
-      qr_code_text:   data.qr_code || '',   // texto EMV para o frontend renderizar o QR
+      qr_code_text:   qrText,
+      qr_code_image:  qrImageDataUrl,   // base64 completo pronto para <img src="">
       amount:         data.amount,
       created_at:     nowUTC(),
       expires_at:     data.expires_at
     });
 
   } catch (err) {
-    console.error('PIX handler error:', err);
+    console.error('PIX handler error:', err.message);
     return res.status(500).json({ error: 'Erro interno', message: err.message });
   }
-}
+};
