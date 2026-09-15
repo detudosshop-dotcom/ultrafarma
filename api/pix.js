@@ -56,11 +56,16 @@ export default async function handler(req, res) {
     }
 
     // Retorna o QR code e o código copia-e-cola para o frontend
+    const qrBase64Raw = data.qr_code_base64 || '';
+    const qrImage = qrBase64Raw.startsWith('data:')
+      ? qrBase64Raw
+      : 'data:image/png;base64,' + qrBase64Raw;
+
     return res.status(200).json({
       success: true,
       transaction_id: data.transaction_id,
       qr_code_text: data.qr_code,
-      qr_code_image: data.qr_code_base64,
+      qr_code_image: qrImage,
       amount: data.amount,
       expires_at: data.expires_at
     });

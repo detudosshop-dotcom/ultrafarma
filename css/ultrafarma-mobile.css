@@ -1510,3 +1510,16 @@ button, a, input, select, .dosage-pill-btn, .thumb-item, .progressive-card {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* Validação de formulário */
+.field-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239,68,68,0.2) !important;
+}
+.field-error-msg {
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 3px;
+  display: block;
+}

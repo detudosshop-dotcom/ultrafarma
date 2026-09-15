@@ -608,6 +608,74 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnStep3 = document.getElementById('btn-go-to-step-3');
   if (btnStep3) {
     btnStep3.addEventListener('click', () => {
+      // Limpa erros anteriores
+      document.querySelectorAll('.field-error-msg').forEach(el => el.remove());
+      document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+
+      const requiredFields = [
+        { id: 'input-name',         label: 'Nome Completo' },
+        { id: 'input-email',        label: 'E-mail' },
+        { id: 'input-cpf',          label: 'CPF' },
+        { id: 'input-phone',        label: 'Celular / WhatsApp' },
+        { id: 'input-cep',          label: 'CEP' },
+        { id: 'input-street',       label: 'Rua / Logradouro' },
+        { id: 'input-number',       label: 'Número' },
+        { id: 'input-neighborhood', label: 'Bairro' },
+        { id: 'input-city',         label: 'Cidade' },
+        { id: 'input-state',        label: 'UF' }
+      ];
+
+      let hasError = false;
+      let firstErrorEl = null;
+
+      requiredFields.forEach(field => {
+        const el = document.getElementById(field.id);
+        if (!el) return;
+        const val = el.value.trim();
+        if (!val) {
+          hasError = true;
+          el.classList.add('field-error');
+          const msg = document.createElement('div');
+          msg.className = 'field-error-msg';
+          msg.textContent = field.label + ' é obrigatório';
+          el.parentNode.insertBefore(msg, el.nextSibling);
+          if (!firstErrorEl) firstErrorEl = el;
+        }
+      });
+
+      // Validação extra: CPF deve ter 11 dígitos
+      const cpfEl = document.getElementById('input-cpf');
+      if (cpfEl && cpfEl.value.replace(/\D/g, '').length !== 11) {
+        if (!cpfEl.classList.contains('field-error')) {
+          cpfEl.classList.add('field-error');
+          const msg = document.createElement('div');
+          msg.className = 'field-error-msg';
+          msg.textContent = 'CPF inválido — informe os 11 dígitos';
+          cpfEl.parentNode.insertBefore(msg, cpfEl.nextSibling);
+          if (!firstErrorEl) firstErrorEl = cpfEl;
+          hasError = true;
+        }
+      }
+
+      // Validação extra: telefone deve ter ao menos 10 dígitos
+      const phoneEl = document.getElementById('input-phone');
+      if (phoneEl && phoneEl.value.replace(/\D/g, '').length < 10) {
+        if (!phoneEl.classList.contains('field-error')) {
+          phoneEl.classList.add('field-error');
+          const msg = document.createElement('div');
+          msg.className = 'field-error-msg';
+          msg.textContent = 'Celular inválido — informe DDD + número';
+          phoneEl.parentNode.insertBefore(msg, phoneEl.nextSibling);
+          if (!firstErrorEl) firstErrorEl = phoneEl;
+          hasError = true;
+        }
+      }
+
+      if (hasError) {
+        if (firstErrorEl) firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return; // bloqueia o avanço
+      }
+
       goToStep(3);
     });
   }
@@ -710,32 +778,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (btnFinalize) {
     btnFinalize.addEventListener('click', async () => {
-      // Coleta dados do formulário de entrega
-      const nameEl     = document.getElementById('delivery-name')     || document.getElementById('checkout-name');
-      const emailEl    = document.getElementById('delivery-email')    || document.getElementById('checkout-email');
-      const phoneEl    = document.getElementById('delivery-phone')    || document.getElementById('checkout-phone');
-      const cpfEl      = document.getElementById('delivery-cpf')      || document.getElementById('checkout-cpf');
-      const cepEl      = document.getElementById('delivery-cep')      || document.getElementById('checkout-cep');
-      const streetEl   = document.getElementById('delivery-street')   || document.getElementById('checkout-street');
-      const numberEl   = document.getElementById('delivery-number')   || document.getElementById('checkout-number');
-      const neighEl    = document.getElementById('delivery-neighborhood') || document.getElementById('checkout-neighborhood');
-      const cityEl     = document.getElementById('delivery-city')     || document.getElementById('checkout-city');
-      const stateEl    = document.getElementById('delivery-state')    || document.getElementById('checkout-state');
+      // Coleta dados usando os IDs reais do formulário de entrega
+      const nameEl   = document.getElementById('input-name');
+      const emailEl  = document.getElementById('input-email');
+      const phoneEl  = document.getElementById('input-phone');
+      const cpfEl    = document.getElementById('input-cpf');
+      const cepEl    = document.getElementById('input-cep');
+      const streetEl = document.getElementById('input-street');
+      const numberEl = document.getElementById('input-number');
+      const neighEl  = document.getElementById('input-neighborhood');
+      const cityEl   = document.getElementById('input-city');
+      const stateEl  = document.getElementById('input-state');
 
-      const customerName  = nameEl  ? nameEl.value.trim()  : 'Cliente Ultrafarma';
-      const customerEmail = emailEl ? emailEl.value.trim() : 'cliente@email.com';
-      const customerPhone = phoneEl ? phoneEl.value.replace(/\D/g, '') : '11999990000';
-      const customerCpf   = cpfEl   ? cpfEl.value.replace(/\D/g, '')   : '00000000000';
-      const customerCep   = cepEl   ? cepEl.value.replace(/\D/g, '')   : '';
+      const customerName  = nameEl  ? nameEl.value.trim()              : '';
+      const customerEmail = emailEl ? emailEl.value.trim()             : '';
+      const customerPhone = phoneEl ? phoneEl.value.replace(/\D/g,'')  : '';
+      const customerCpf   = cpfEl   ? cpfEl.value.replace(/\D/g,'')    : '';
+      const customerCep   = cepEl   ? cepEl.value.replace(/\D/g,'')    : '';
 
       const address = {
-        street:       streetEl  ? streetEl.value.trim()  : '',
-        number:       numberEl  ? numberEl.value.trim()  : '',
-        neighborhood: neighEl   ? neighEl.value.trim()   : '',
-        city:         cityEl    ? cityEl.value.trim()    : '',
-        state:        stateEl   ? stateEl.value.trim()   : '',
+        street:       streetEl ? streetEl.value.trim() : '',
+        number:       numberEl ? numberEl.value.trim() : '',
+        neighborhood: neighEl  ? neighEl.value.trim()  : '',
+        city:         cityEl   ? cityEl.value.trim()   : '',
+        state:        stateEl  ? stateEl.value.trim()  : '',
         zipcode:      customerCep
-      };
 
       // Calcula valor total em centavos
       const totals = calculateTotals();
