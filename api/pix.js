@@ -1,6 +1,7 @@
 // api/pix.js — Vercel Serverless Function
-// Proxy seguro para FlevoPay: chama a API do lado do servidor
-// A secret key NUNCA fica exposta no frontend
+// Proxy seguro para FlevoPay + geração de QR Code local (sem API externa)
+
+import QRCode from 'qrcode';
 
 const FLEVOPAY_API = 'https://app.flevopay.com.br/api/v1/transaction';
 const FLEVOPAY_KEY = 'flevopay_sk_4d2f2349cd060b2eb9d2346923037759f1c3b617645417359fc96c8a80ea2429';
@@ -47,20 +48,32 @@ export default async function handler(req, res) {
     const data = await fResponse.json();
 
     if (!fResponse.ok) {
-      return res.status(fResponse.status).json({ error: data.message || 'Erro FlevoPay', details: data });
+      return res.status(fResponse.status).json({
+        error: data.message || 'Erro FlevoPay',
+        details: data
+      });
     }
 
-    // Gera imagem do QR Code via Google Charts (FlevoPay retorna qr_code_base64 vazio)
-    const qrText     = data.qr_code || '';
-    const qrImageUrl = qrText
-      ? 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=' + encodeURIComponent(qrText) + '&choe=UTF-8'
-      : '';
+    const qrText = data.qr_code || '';
+
+    // Gera QR Code em base64 localmente com a lib 'qrcode'
+    // FlevoPay retorna qr_code_base64 vazio — por isso geramos aqui
+    let qrImageDataUrl = '';
+    if (qrText) {
+      qrImageDataUrl = await QRCode.toDataURL(qrText, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        width: 300,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' }
+      });
+    }
 
     return res.status(200).json({
       success:        true,
       transaction_id: data.transaction_id,
       qr_code_text:   qrText,
-      qr_code_image:  qrImageUrl,
+      qr_code_image:  qrImageDataUrl,   // data:image/png;base64,... completo
       amount:         data.amount,
       created_at:     nowUTC(),
       expires_at:     data.expires_at
