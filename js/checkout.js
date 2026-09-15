@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dosage: defaultVar ? defaultVar.dosage : '2,5 mg',
         volume: defaultVar ? defaultVar.volume : '0,5 mL',
         color: defaultVar ? defaultVar.color : '#6b7280',
-        image: 'images/tirzepatida-all.png',
+        image: '/images/tirzepatida-all.png',
         unitPrice: defaultVar ? defaultVar.pricePromo : 1099.00,
         progressivePrice2: defaultVar ? defaultVar.progressivePrice2 : 989.10,
         priceOriginal: defaultVar ? defaultVar.priceOriginal : 1490.00,
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const isProg = item.quantity >= 2;
       html += `
         <div class="cart-item-row-checkout">
-          <img src="${item.image || 'images/tirzepatida-all.png'}" alt="${item.title}">
+          <img src="${item.image || '/images/tirzepatida-all.png'}" alt="${item.title}">
           <div class="cart-item-detail">
             <div class="cart-item-name">${item.title}</div>
             <div class="cart-item-seller">Vendido e entregue por <strong>Ultrafarma Medicamentos Especiais</strong></div>
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const price = item.currentUnitPrice || item.unitPrice || 1099.00;
         html += `
           <div class="order-summary-item">
-            <img src="${item.image || 'images/tirzepatida-all.png'}" alt="${item.title}">
+            <img src="${item.image || '/images/tirzepatida-all.png'}" alt="${item.title}">
             <div class="order-summary-item-info">
               <div class="order-summary-item-title">${item.title}</div>
               ${item.dosage ? `

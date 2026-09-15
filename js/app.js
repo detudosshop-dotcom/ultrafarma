@@ -9,12 +9,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Mapeamento de imagens para cada dosagem
   const variantImages = {
-    'tirz-2-5': 'images/box-2-5.jpg',
-    'tirz-5-0': 'images/box-5-0.jpg',
-    'tirz-7-5': 'images/box-7-5.jpg',
-    'tirz-10-0': 'images/tirzepatida-all.png',
-    'tirz-12-5': 'images/tirzepatida-all.png',
-    'tirz-15-0': 'images/tirzepatida-all.png'
+    'tirz-2-5': '/images/box-2-5.jpg',
+    'tirz-5-0': '/images/box-5-0.jpg',
+    'tirz-7-5': '/images/box-7-5.jpg',
+    'tirz-10-0': '/images/tirzepatida-all.png',
+    'tirz-12-5': '/images/tirzepatida-all.png',
+    'tirz-15-0': '/images/tirzepatida-all.png'
   };
 
   // Variável de estado da dosagem selecionada (padrão 2,5 mg)
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (prog2) prog2.textContent = formatMoney(variant.progressivePrice2);
 
     // Troca a foto da galeria para a foto da caixa selecionada (se disponível)
-    const boxImg = variantImages[variant.id] || 'images/tirzepatida-all.png';
+    const boxImg = variantImages[variant.id] || '/images/tirzepatida-all.png';
     changeMainImage(boxImg);
     highlightThumbForVariant(variant.id);
   }
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Constrói objeto completo para o CartManager com a dosagem e imagem correspondente
   function getProductToAdd() {
-    const itemImg = variantImages[selectedVariant.id] || 'images/tirzepatida-all.png';
+    const itemImg = variantImages[selectedVariant.id] || '/images/tirzepatida-all.png';
     return {
       id: selectedVariant.id,
       variantId: selectedVariant.id,

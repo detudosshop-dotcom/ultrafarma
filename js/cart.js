@@ -45,7 +45,7 @@
           dosage: product.dosage || '2,5 mg',
           volume: product.volume || '0,5 mL',
           color: product.color || '#6b7280',
-          image: (product.images && product.images[0]) ? (product.images[0].thumb || product.images[0]) : 'images/tirzepatida-all.png',
+          image: (product.images && product.images[0]) ? (product.images[0].thumb || product.images[0]) : '/images/tirzepatida-all.png',
           unitPrice: product.pricePromo || 1099.00,
           progressivePrice2: product.progressivePrice2 || (product.pricePromo ? product.pricePromo * 0.9 : 989.10),
           priceOriginal: product.priceOriginal || 1490.00,
@@ -127,7 +127,7 @@
       const totals = this.getTotals();
 
       if (imgEl) {
-        imgEl.src = (product.images && product.images[0]) ? (product.images[0].thumb || product.images[0]) : 'images/tirzepatida-all.png';
+        imgEl.src = (product.images && product.images[0]) ? (product.images[0].thumb || product.images[0]) : '/images/tirzepatida-all.png';
       }
 
       const nameEl = document.getElementById('modal-item-name');
