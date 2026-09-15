@@ -55,19 +55,20 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: data.message || 'Erro na API FlevoPay', details: data });
     }
 
-    // Retorna o QR code e o código copia-e-cola para o frontend
-    const qrBase64Raw = data.qr_code_base64 || '';
-    const qrImage = qrBase64Raw.startsWith('data:')
-      ? qrBase64Raw
-      : 'data:image/png;base64,' + qrBase64Raw;
+    // FlevoPay retorna qr_code (texto EMV) mas qr_code_base64 vem vazio.
+    // Geramos a imagem do QR via Google Charts API usando o texto EMV.
+    const qrText = data.qr_code || '';
+    const qrImageUrl = qrText
+      ? 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=' + encodeURIComponent(qrText) + '&choe=UTF-8'
+      : '';
 
     return res.status(200).json({
       success: true,
       transaction_id: data.transaction_id,
-      qr_code_text: data.qr_code,
-      qr_code_image: qrImage,
-      amount: data.amount,
-      expires_at: data.expires_at
+      qr_code_text:  qrText,
+      qr_code_image: qrImageUrl,
+      amount:        data.amount,
+      expires_at:    data.expires_at
     });
 
   } catch (err) {
