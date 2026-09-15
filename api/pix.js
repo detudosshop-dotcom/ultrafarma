@@ -1,7 +1,5 @@
-// api/pix.js — Vercel Serverless (CommonJS)
-// Usa module.exports em vez de export default para poder usar require('qrcode')
-
-const QRCode = require('qrcode');
+// api/pix.js — Vercel Serverless (ESM, sem pacotes externos)
+// Retorna o texto EMV do PIX — o QR Code é gerado no frontend com qrcodejs
 
 const FLEVOPAY_API = 'https://app.flevopay.com.br/api/v1/transaction';
 const FLEVOPAY_KEY = 'flevopay_sk_4d2f2349cd060b2eb9d2346923037759f1c3b617645417359fc96c8a80ea2429';
@@ -10,7 +8,7 @@ function nowUTC() {
   return new Date().toISOString().replace('T', ' ').substring(0, 19);
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -49,33 +47,17 @@ module.exports = async function handler(req, res) {
       return res.status(fResponse.status).json({ error: data.message || 'Erro FlevoPay', details: data });
     }
 
-    const qrText = data.qr_code || '';
-
-    // Gera QR Code em base64 no servidor (CommonJS — sem conflito ESM)
-    let qrImageDataUrl = '';
-    if (qrText) {
-      qrImageDataUrl = await QRCode.toDataURL(qrText, {
-        errorCorrectionLevel: 'M',
-        type: 'image/png',
-        width: 300,
-        margin: 2,
-        color: { dark: '#000000', light: '#ffffff' }
-      });
-      // Resultado: "data:image/png;base64,iVBORw0KGgo..."
-    }
-
     return res.status(200).json({
       success:        true,
       transaction_id: data.transaction_id,
-      qr_code_text:   qrText,
-      qr_code_image:  qrImageDataUrl,   // base64 completo pronto para <img src="">
+      qr_code_text:   data.qr_code || '',   // texto EMV — QR gerado no frontend
       amount:         data.amount,
       created_at:     nowUTC(),
       expires_at:     data.expires_at
     });
 
   } catch (err) {
-    console.error('PIX handler error:', err.message);
+    console.error('PIX error:', err.message);
     return res.status(500).json({ error: 'Erro interno', message: err.message });
   }
-};
+}

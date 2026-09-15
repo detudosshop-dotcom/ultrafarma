@@ -787,43 +787,24 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.success && data.qr_code_text) {
         if (pixCodeInput) pixCodeInput.value = data.qr_code_text;
 
+        // Renderiza o QR Code no browser com qrcodejs
         if (pixQrWrapper) {
-          pixQrWrapper.innerHTML = ''; // limpa SVG placeholder
+          // Cria um div limpo dentro do wrapper para o qrcodejs usar
+          pixQrWrapper.innerHTML = '<div id="qr-canvas-target" style="display:flex;justify-content:center;"></div>';
+          const qrTarget = document.getElementById('qr-canvas-target');
 
-          if (data.qr_code_image) {
-            // ✅ Servidor gerou o QR em base64 — exibe direto como <img>
-            const img = document.createElement('img');
-            img.src    = data.qr_code_image;
-            img.alt    = 'QR Code PIX';
-            img.style.cssText = 'width:220px;height:220px;border-radius:8px;display:block;margin:0 auto;';
-            pixQrWrapper.appendChild(img);
-
-          } else if (data.qr_code_text) {
-            // ⚙️ Fallback: gera QR no browser com qrcodejs
-            function tryRenderQR() {
-              if (typeof QRCode !== 'undefined') {
-                new QRCode(pixQrWrapper, {
-                  text:         data.qr_code_text,
-                  width:        220,
-                  height:       220,
-                  colorDark:    '#000000',
-                  colorLight:   '#ffffff',
-                  correctLevel: QRCode.CorrectLevel.M
-                });
-              } else {
-                pixQrWrapper.innerHTML = '<div style="color:#64748b;text-align:center;padding:12px;font-size:12px;">Use o código Copia e Cola abaixo.</div>';
-              }
-            }
-            if (typeof QRCode !== 'undefined') {
-              tryRenderQR();
-            } else {
-              let w = 0;
-              const t = setInterval(() => {
-                w += 100;
-                if (typeof QRCode !== 'undefined') { clearInterval(t); tryRenderQR(); }
-                else if (w >= 3000) { clearInterval(t); tryRenderQR(); }
-              }, 100);
-            }
+          try {
+            new QRCode(qrTarget, {
+              text:         data.qr_code_text,
+              width:        220,
+              height:       220,
+              colorDark:    '#000000',
+              colorLight:   '#ffffff',
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          } catch(e) {
+            console.error('QRCode render error:', e);
+            pixQrWrapper.innerHTML = '<p style="text-align:center;color:#64748b;font-size:12px;padding:10px;">Use o código Copia e Cola abaixo.</p>';
           }
         }
 
